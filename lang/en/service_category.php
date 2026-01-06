@@ -1,0 +1,20 @@
+<?php
+return array(
+    'service_category' => 'Our Service Area',
+    'create_title' => 'Create Our Service Area',
+    'edit_title' => 'Edit Our Service Area',
+    'category_name' => 'Service Area Name in English',
+    'category_name_bn' => 'Service Area Name in Bangla',
+    'short_details' => 'Short Details',
+    'map' => 'Map',
+    'category_name_required' => 'Please Give A Service Area Name',
+    'category_name_unique' => 'This Service Area Name is Already Taken',
+    'create_message' => 'Our Service Area Created Successfully',
+    'index_title' => 'List of Our Service Area',
+    'status_message' => 'Our Service Area Status Updated',
+    'details' => 'Our Service Area Details',
+    'update_message' => 'Our Service Area Updated',
+    'delete_message' => 'Our Service Area Deleted',
+    'trash_title' => 'List Of Deleted Our Service Area',
+    'restore_message' => 'Our Service Area Restored',
+);

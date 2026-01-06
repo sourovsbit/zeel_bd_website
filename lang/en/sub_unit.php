@@ -1,0 +1,22 @@
+<?php
+return array(
+    'add' => 'Create Sub Unit',
+    'index_title' => 'Sub Units',
+    'select_unit' => 'Select Unit',
+    'sub_unit_name' => 'Sub Unit Name',
+    'sub_unit_name_bn' =>'Sub Unit Name BN',
+    'unit' => 'Unit',
+    'sub_unit' => 'Sub Unit',
+    'sub_unit_data' => 'Sub Unit Data',
+    'sub_unit_name_required' => 'Please Give Sub Unit Name',
+    'sub_unit_data_required' => 'Please Give Sub Unit Data',
+    'create_message' => 'Sub Unit Created Succesfully',
+    'edit' => 'Edit Sub Unit',
+    'index_title' => 'List of Sub Unit',
+    'status_message' => 'Sub Unit Status Updated',
+    'details' => 'Sub Unit Details',
+    'update_message' => 'Sub Unit Updated',
+    'delete_message' => 'Sub Unit Deleted',
+    'trash_title' => 'List Of Deleted Sub Unit',
+    'restore_message' => 'Sub Unit Restored',
+);

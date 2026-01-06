@@ -1,0 +1,27 @@
+<?php
+return array(
+    'message' => 'Message',
+    'create_title' => 'Create Message',
+    'edit_title' => 'Edit Message',
+    'name' => 'Name',
+    'email' => 'Email',
+    'phone' => 'Phone',
+    'message' => 'Message',
+    'read' => 'Read',
+    'read_by' => 'Read by',
+    'title' => 'Title in English',
+    'title_required' => 'Please Give A Title Name',
+    'create_message' => 'Message Created Successfully',
+    'index_title' => 'List of Message',
+    'status_message' => 'Message Status Updated',
+    'details' => 'Message Details',
+    'update_message' => 'Message Updated',
+    'delete_message' => 'Message Deleted',
+    'trash_title' => 'List Of Deleted Message',
+    'restore_message' => 'Message Restored',
+
+    'details' => 'Details',
+    'view_details' => 'View Details',
+    'created_at' => 'Created at',
+    'back' => 'Back',
+);

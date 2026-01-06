@@ -1,0 +1,23 @@
+<?php
+return array(
+    'bookings' => 'Bookings List',
+    'create_title' => 'Create Bookings',
+    'edit_title' => 'Edit Bookings',
+    'name' => 'Name',
+    'email' => 'Email',
+    'phone' => 'Phone',
+    'booking_date' => 'Booking Date',
+    'service_name' => 'Service Name',
+    'address' => 'Address',
+    'notes' => 'Notes',
+    'title' => 'Title in English',
+    'title_required' => 'Please Give A Title Name',
+    'create_bookings' => 'Bookings Created Successfully',
+    'index_title' => 'List of Bookings',
+    'status_bookings' => 'Bookings Status Updated',
+    'details' => 'Bookings Details',
+    'update_bookings' => 'Bookings Updated',
+    'delete_bookings' => 'Bookings Deleted',
+    'trash_title' => 'List Of Deleted Bookings',
+    'restore_bookings' => 'Bookings Restored',
+);

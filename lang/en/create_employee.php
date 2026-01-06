@@ -1,0 +1,21 @@
+<?php
+return array(
+    'create_employee' => 'Employee',
+    'create_title' => 'Create Employee',
+    'edit_title' => 'Edit Employee',
+    'designation' => 'Designation',
+    'facebook' => 'Facebook',
+    'instagram' => 'Instagram',
+    'phone' => 'Phone Number',
+    'name' => 'Employee Name in English',
+    'name_required' => 'Please Give A Employee Name',
+    'designation_required' => 'Please Give A Employee Designation',
+    'create_message' => 'Employee Created Successfully',
+    'index_title' => 'List of Employee',
+    'status_message' => 'Employee Status Updated',
+    'details' => 'Employee Details',
+    'update_message' => 'Employee Updated',
+    'delete_message' => 'Employee Deleted',
+    'trash_title' => 'List Of Deleted Employee',
+    'restore_message' => 'Employee Restored',
+);
