@@ -102,9 +102,26 @@
 
     /* Phone Animation */
     @keyframes phoneRing {
-        0%, 100% { transform: rotate(0); }
-        10%, 30%, 50%, 70%, 90% { transform: rotate(-10deg); }
-        20%, 40%, 60%, 80% { transform: rotate(10deg); }
+
+        0%,
+        100% {
+            transform: rotate(0);
+        }
+
+        10%,
+        30%,
+        50%,
+        70%,
+        90% {
+            transform: rotate(-10deg);
+        }
+
+        20%,
+        40%,
+        60%,
+        80% {
+            transform: rotate(10deg);
+        }
     }
 
     .phone-float-btn:hover .phone-icon {
@@ -127,6 +144,7 @@
             transform: scale(1);
             opacity: 0.5;
         }
+
         100% {
             transform: scale(1.2);
             opacity: 0;
@@ -504,6 +522,7 @@
             opacity: 0;
             transform: translateY(20px) scale(0.9);
         }
+
         to {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -517,20 +536,19 @@
 
 <!-- Floating Action Buttons -->
 <div class="floating-buttons">
-    @if($company->sales_phone)
-    <a href="https://wa.me/{{$company->sales_phone}}" target="_blank" class="whatsapp-btn"
-       aria-label="Chat with us on WhatsApp" title="Chat on WhatsApp">
-        <i class="fa fa-whatsapp"></i>
-    </a>
+    @if ($company->sales_phone)
+        <a href="https://wa.me/{{ $company->sales_phone }}" target="_blank" class="whatsapp-btn"
+            aria-label="Chat with us on WhatsApp" title="Chat on WhatsApp">
+            <i class="fa fa-whatsapp"></i>
+        </a>
     @endif
 
-    @if($company->phone)
-    <a href="tel:+{{$company->phone}}" class="phone-float-btn"
-       aria-label="Call us now" title="Call Now">
-        <span class="phone-pulse"></span>
-        <i class="fa fa-phone phone-icon"></i>
-        <span class="phone-text">Call Now</span>
-    </a>
+    @if ($company->phone)
+        <a href="tel:+{{ $company->phone }}" class="phone-float-btn" aria-label="Call us now" title="Call Now">
+            <span class="phone-pulse"></span>
+            <i class="fa fa-phone phone-icon"></i>
+            <span class="phone-text">Call Now</span>
+        </a>
     @endif
 </div>
 
@@ -542,12 +560,12 @@
             <div class="col-lg-4 col-md-6">
                 <div class="footer-logo">
                     @php
-                        $pathlogo = public_path().'/backend/CompanyProfile/CompanyProfileLogo/'.$company->logo;
+                        $pathlogo = public_path() . '/backend/CompanyProfile/CompanyProfileLogo/' . $company->logo;
                     @endphp
-                    @if(file_exists($pathlogo))
-                        <a href="{{url('/')}}">
+                    @if (file_exists($pathlogo))
+                        <a href="{{ url('/') }}">
                             <img src="{{ asset('backend/CompanyProfile/CompanyProfileLogo') }}/{{ $company->logo }}"
-                                 alt="{{ $company->name ?? 'Company Logo' }}">
+                                alt="{{ $company->name ?? 'Company Logo' }}">
                         </a>
                     @endif
                 </div>
@@ -555,50 +573,52 @@
                 <div class="company-info">
                     <h4>Contact Information</h4>
                     <ul class="info-list">
-                        @if($company->address)
-                        <li>
-                            <i class="fa fa-map-marker"></i>
-                            <span>{{ $company->address }}</span>
-                        </li>
+                        @if ($company->address)
+                            <li>
+                                <i class="fa fa-map-marker"></i>
+                                <span>{!! $company->address !!}</span>
+                            </li>
                         @endif
-                        @if($company->phone)
-                        <li>
-                            <i class="fa fa-phone"></i>
-                            <span>{{ $company->phone }}</span>
-                        </li>
+                        @if ($company->phone)
+                            <li>
+                                <i class="fa fa-phone"></i>
+                                <span>{{ $company->phone }}</span>
+                            </li>
                         @endif
-                        @if($company->email)
-                        <li>
-                            <i class="fa fa-envelope"></i>
-                            <span>{{ $company->email }}</span>
-                        </li>
+                        @if ($company->email)
+                            <li>
+                                <i class="fa fa-envelope"></i>
+                                <span>{{ $company->email }}</span>
+                            </li>
                         @endif
                     </ul>
                 </div>
 
-                @if($company->facebook || $company->instagram || $company->twitter || $company->youtube)
-                <div class="social-links">
-                    @if($company->facebook)
-                    <a href="{{ $company->facebook }}" target="_blank" class="social-link" aria-label="Facebook">
-                        <i class="fa fa-facebook"></i>
-                    </a>
-                    @endif
-                    @if($company->instagram)
-                    <a href="{{ $company->instagram }}" target="_blank" class="social-link" aria-label="Instagram">
-                        <i class="fa fa-instagram"></i>
-                    </a>
-                    @endif
-                    @if($company->twitter)
-                    <a href="{{ $company->twitter }}" target="_blank" class="social-link" aria-label="Twitter">
-                        <i class="fa fa-twitter"></i>
-                    </a>
-                    @endif
-                    @if($company->youtube)
-                    <a href="{{ $company->youtube }}" target="_blank" class="social-link" aria-label="YouTube">
-                        <i class="fa fa-youtube"></i>
-                    </a>
-                    @endif
-                </div>
+                @if ($company->facebook || $company->instagram || $company->twitter || $company->youtube)
+                    <div class="social-links">
+                        @if ($company->facebook)
+                            <a href="{{ $company->facebook }}" target="_blank" class="social-link"
+                                aria-label="Facebook">
+                                <i class="fa fa-facebook"></i>
+                            </a>
+                        @endif
+                        @if ($company->instagram)
+                            <a href="{{ $company->instagram }}" target="_blank" class="social-link"
+                                aria-label="Instagram">
+                                <i class="fa fa-instagram"></i>
+                            </a>
+                        @endif
+                        @if ($company->twitter)
+                            <a href="{{ $company->twitter }}" target="_blank" class="social-link" aria-label="Twitter">
+                                <i class="fa fa-twitter"></i>
+                            </a>
+                        @endif
+                        @if ($company->youtube)
+                            <a href="{{ $company->youtube }}" target="_blank" class="social-link" aria-label="YouTube">
+                                <i class="fa fa-youtube"></i>
+                            </a>
+                        @endif
+                    </div>
                 @endif
             </div>
 
@@ -609,7 +629,8 @@
                     <ul class="widget-links">
                         <li><a href="{{ url('/') }}"><i class="fa fa-chevron-right"></i> Home</a></li>
                         <li><a href="{{ url('about') }}"><i class="fa fa-chevron-right"></i> About Us</a></li>
-                        <li><a href="{{ url('missionvision') }}"><i class="fa fa-chevron-right"></i> Mission & Vision</a></li>
+                        <li><a href="{{ url('missionvision') }}"><i class="fa fa-chevron-right"></i> Mission &
+                                Vision</a></li>
                         <li><a href="{{ url('careers') }}"><i class="fa fa-chevron-right"></i> Careers</a></li>
                         <li><a href="{{ url('contact') }}"><i class="fa fa-chevron-right"></i> Contact</a></li>
                     </ul>
@@ -621,9 +642,12 @@
                 <div class="footer-widget">
                     <h4 class="widget-title">Legal</h4>
                     <ul class="widget-links">
-                        <li><a href="{{url('privacypolicy')}}"><i class="fa fa-chevron-right"></i> Privacy Policy</a></li>
-                        <li><a href="{{url('termsconditions')}}"><i class="fa fa-chevron-right"></i> Terms & Conditions</a></li>
-                        <li><a href="{{url('returnrefund')}}"><i class="fa fa-chevron-right"></i> Return & Refund</a></li>
+                        <li><a href="{{ url('privacypolicy') }}"><i class="fa fa-chevron-right"></i> Privacy Policy</a>
+                        </li>
+                        <li><a href="{{ url('termsconditions') }}"><i class="fa fa-chevron-right"></i> Terms &
+                                Conditions</a></li>
+                        <li><a href="{{ url('returnrefund') }}"><i class="fa fa-chevron-right"></i> Return & Refund</a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -633,7 +657,8 @@
                 <div class="newsletter-card">
                     <h4 class="newsletter-title">Stay Updated</h4>
                     <p class="newsletter-desc">
-                        Subscribe to our newsletter and be the first to know about new products, special offers, and company news.
+                        Subscribe to our newsletter and be the first to know about new products, special offers, and
+                        company news.
                     </p>
                     <form class="newsletter-form" id="newsletterForm">
                         <input type="email" class="form-input" placeholder="Your email address" required>
@@ -695,7 +720,7 @@
 
     // Add smooth scroll behavior
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
+        anchor.addEventListener('click', function(e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
@@ -724,6 +749,14 @@
 <script src="{{ asset('frontend/js/jquery-3.3.1.min.js') }}"></script>
 <script src="{{ asset('frontend/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('frontend/js/main.js') }}"></script>
+<script src="{{ asset('') }}frontend/js/jquery-ui.min.js"></script>
+<script src="{{ asset('') }}frontend/js/jquery.countdown.min.js"></script>
+<script src="{{ asset('') }}frontend/js/jquery.nice-select.min.js"></script>
+<script src="{{ asset('') }}frontend/js/jquery.zoom.min.js"></script>
+<script src="{{ asset('') }}frontend/js/jquery.dd.min.js"></script>
+<script src="{{ asset('') }}frontend/js/jquery.slicknav.js"></script>
+<script src="{{ asset('') }}frontend/js/owl.carousel.min.js"></script>
 
 </body>
+
 </html>

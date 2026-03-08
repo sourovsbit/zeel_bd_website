@@ -69,6 +69,8 @@ class FrontendController extends Controller
 
         $adminmessage = Administrative::where('status', 1)->orderBy('sl','ASC')->get();
 
+        // return $slider;
+
         return view("frontend.index",compact('product','products','slider','cerficates','employee','client','blog','ads','data','news','missionvision','adminmessage','choose'));
     }
 

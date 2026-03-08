@@ -347,15 +347,15 @@
                 <li class="{{ request()->is('shop*') ? 'active' : '' }}">
                     <a href="{{ url('shop') }}">Products</a>
                 </li>
-                <li class="{{ request()->is('careers*') ? 'active' : '' }}">
+                {{-- <li class="{{ request()->is('careers*') ? 'active' : '' }}">
                     <a href="{{ url('careers') }}">Careers</a>
-                </li>
+                </li> --}}
                 <li class="{{ request()->is('newsevent*') || request()->is('gallery*') || request()->is('videoalbum*') ? 'active' : '' }}">
                     <a href="#">Media</a>
                     <ul class="submenu">
                         <li><a href="{{ url('newsevent') }}">News & Events</a></li>
                         <li><a href="{{ url('gallery') }}">Photo Gallery</a></li>
-                        <li><a href="{{ url('videoalbum') }}">Video Gallery</a></li>
+                        {{-- <li><a href="{{ url('videoalbum') }}">Video Gallery</a></li> --}}
                     </ul>
                 </li>
                 <li class="{{ request()->is('contact*') ? 'active' : '' }}">
