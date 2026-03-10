@@ -2,468 +2,284 @@
 @extends('frontend.layouts.meta')
 
 @section('content')
-
     @include('frontend.layouts.navbar')
 
-    <!-- HERO HEADER -->
-    <section class="product-hero py-5">
-        <div class="container text-center">
-
-            <h1 class="display-5 fw-bold mb-3">
-                Our Exclusive Collection
-            </h1>
-
-            <p class="lead text-muted">
+    <!-- ========== HERO SECTION ========== -->
+    <section class="hero-section position-relative overflow-hidden">
+        <div class="hero-bg"></div>
+        <div class="container position-relative text-center py-5">
+            <span class="badge bg-white text-dark px-3 py-2 rounded-pill mb-3 animate__animated animate__fadeInDown">
+                <i class="bi bi-gem me-1"></i> Premium Quality
+            </span>
+            <h1 class="display-3 fw-bold mb-3 animate__animated animate__fadeInDown">Our Exclusive Collection</h1>
+            <p class="lead fs-4 mb-4 animate__animated animate__fadeInUp animate__delay-1s">
                 Premium products carefully selected for you
             </p>
-
+            <!-- Search bar integrated into hero -->
+            <div class="row justify-content-center animate__animated animate__fadeInUp animate__delay-1s">
+                <div class="col-md-6">
+                    <form id="heroSearchForm" class="bg-white rounded-pill p-2 shadow-lg">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-0 ps-3">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" name="search" id="heroSearch" value="{{ request('search') }}"
+                                class="form-control border-0 ps-0" placeholder="Search for products...">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4" style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);">Search</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- PRODUCT GRID -->
-    <main class="pb-5">
-        <div class="container">
-            <div class="row g-4" id="product-grid">
-                @if (!empty($products))
-                    @php $count = 0; @endphp
-                    @foreach ($products as $product)
-                        @php
-                            $imagePath = !empty($product['product_images'][0]['path'])
-                                ? 'https://inventory.geelbd.com/storage/app/public' .
-                                    $product['product_images'][0]['path']
-                                : 'https://via.placeholder.com/400x400?text=No+Image';
-                            $name = $product['name'] ?? 'Product';
-                            $price = $product['product_detail']['regular_price'] ?? 0;
-                            $sale = $product['product_detail']['sale_price'] ?? 0;
-                            $discountPercent = $sale > 0 && $price > 0 ? round((($price - $sale) / $price) * 100) : 0;
-                        @endphp
+    <!-- ========== FILTER BAR ========== -->
+    <div class="container py-3">
+        <div class="card border-0 shadow-sm rounded-4 bg-light p-3">
+            <form id="filterForm" class="row g-3 align-items-center">
+                <!-- Hidden search field to sync with hero search -->
+                <input type="hidden" name="search" id="searchHidden" value="{{ request('search') }}">
 
-                        <div class="col-xl-3 col-lg-4 col-md-6 product-item {{ $count >= 8 ? 'd-none extra-product' : '' }}">
-                            <div class="product-card">
-                                <div class="product-image-wrapper">
-                                    <a href="{{ url('sell_page/' . $product['id']) }}">
-                                        <img src="{{ $imagePath }}" class="product-image" alt="{{ $name }}"
-                                            loading="lazy">
-                                    </a>
-
-                                    <!-- BADGES -->
-                                    <div class="product-badges">
-                                        @if ($discountPercent > 0)
-                                            <span class="badge discount-badge">
-                                                -{{ $discountPercent }}%
-                                            </span>
-                                        @endif
-                                        @if ($product['is_new'] ?? false)
-                                            <span class="badge new-badge">
-                                                New
-                                            </span>
-                                        @endif
-                                        @if ($product['is_featured'] ?? false)
-                                            <span class="badge featured-badge">
-                                                Featured
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <div class="product-body">
-                                    <h6 class="product-title">
-                                        <a href="{{ url('sell_page/' . $product['id']) }}">
-                                            {{ \Illuminate\Support\Str::limit($name, 55) }}
-                                        </a>
-                                    </h6>
-                                    <div class="product-price">
-                                        @if ($sale < $price)
-                                            <span class="sale-price">
-                                                ৳{{ number_format($sale) }}
-                                            </span>
-                                            <span class="old-price">
-                                                ৳{{ number_format($price) }}
-                                            </span>
-                                        @else
-                                            <span class="sale-price">
-                                                ৳{{ number_format($price) }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                    <a href="{{ url('sell_page/' . $product['id']) }}" class="btn product-btn">
-                                        View Details
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        @php $count++; @endphp
-                    @endforeach
-                @else
-                    <div class="col-12 text-center py-5">
-
-                        <i class="fa fa-box-open fa-4x text-muted mb-4"></i>
-
-                        <h3 class="text-muted">
-                            No Products Available
-                        </h3>
+                <div class="col-md-8 col-8">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fw-semibold text-secondary m-3"><i class="bi bi-funnel me-1"></i> Sort:</span>
+                        <select name="sort" id="sort" class="form-select w-auto rounded-pill border-0 shadow-sm p-3">
+                            <option value="">Featured</option>
+                            <option value="low_to_high" {{ request('sort') == 'low_to_high' ? 'selected' : '' }}>Price: Low to High</option>
+                            <option value="high_to_low" {{ request('sort') == 'high_to_low' ? 'selected' : '' }}>Price: High to Low</option>
+                            <option value="newest" {{ request('sort') == 'newest' ? 'selected' : '' }}>Newest</option>
+                        </select>
                     </div>
-                @endif
-            </div>
+                </div>
+                <div class="col-md-4 col-4 text-md-end">
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-sm" style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);">
+                        <i class="bi bi-check-lg me-1"></i> Apply Filters
+                    </button>
+                </div>
+            </form>
         </div>
-    </main>
+    </div>
 
+    <!-- ========== PRODUCT GRID ========== -->
+    <div class="container pb-5" id="productsContainer">
+        @include('frontend.partials.products_grid')
+    </div>
+@endsection
 
+@section('scripts')
+    <!-- Bootstrap Icons & Animate.css -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+    <script>
+        $(document).ready(function() {
+            // Sync hero search with hidden field and main form
+            $('#heroSearch').on('input', function() {
+                $('#searchHidden').val($(this).val());
+            });
+
+            // Submit from hero search
+            $('#heroSearchForm').on('submit', function(e) {
+                e.preventDefault();
+                $('#searchHidden').val($('#heroSearch').val());
+                fetchProducts();
+            });
+
+            // Main filter form submit
+            $('#filterForm').on('submit', function(e) {
+                e.preventDefault();
+                fetchProducts();
+            });
+
+            // AJAX fetch function
+            function fetchProducts(url = null) {
+                let requestUrl = url ? url : "{{ url('shop') }}";
+                // Only send serialized data when it's NOT a pagination click
+                let requestData = url ? {} : $('#filterForm').serialize();
+
+                $.ajax({
+                    url: requestUrl,
+                    type: 'GET',
+                    data: requestData,
+                    beforeSend: function() {
+                        $('#productsContainer').html(`
+                            <div class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p class="mt-3 text-muted">Curating the best picks...</p>
+                            </div>
+                        `);
+                    },
+                    success: function(res) {
+                        $('#productsContainer').html(res);
+                        if (!url) {
+                            // Update browser URL for filter/search only, not pagination
+                            history.pushState(null, '', requestUrl + '?' + $('#filterForm').serialize());
+                        }
+                        // Smooth scroll to products
+                        $('html, body').animate({
+                            scrollTop: $('#productsContainer').offset().top - 50
+                        }, 400);
+                    }
+                });
+            }
+
+            // 🔧 FIXED: Pagination click – use correct selector
+            $(document).on('click', '.ajax-pagination', function(e) {
+                e.preventDefault();
+                let url = $(this).attr('href');
+                fetchProducts(url);
+            });
+        });
+    </script>
 
     <style>
-        /* HERO */
-        .product-hero {
-            color: #fff;
-            margin-top: 80px;
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 500px;
+            display: flex;
+            align-items: center;
         }
 
-        /* PRODUCT CARD */
-        .product-card {
-            background: #fff;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 15px 40px rgba(0, 0, 0, .06);
-            transition: .35s;
+        .hero-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
             height: 100%;
-            display: flex;
-            flex-direction: column;
+            background: url('https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80') center/cover;
+            opacity: 0.15;
+            mix-blend-mode: overlay;
+        }
+
+        .hero-section .badge {
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        #heroSearchForm {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        #heroSearchForm .input-group {
+            background: white;
+            border-radius: 50px;
+            overflow: hidden;
+        }
+
+        #heroSearchForm input {
+            height: 50px;
+            font-size: 1rem;
+        }
+
+        #heroSearchForm button {
+            height: 50px;
+            border-radius: 0 50px 50px 0 !important;
+            background: #2a5298;
+            border: none;
+            font-weight: 500;
+        }
+
+        #heroSearchForm button:hover {
+            background: #1e3c72;
+        }
+
+        /* Filter bar */
+        #sort {
+            max-width: 250px;
+            background: white;
+            font-size: 0.95rem;
+            padding: 0.6rem 1.2rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            border: none;
+            transition: opacity 0.2s;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+        }
+
+        /* Product cards – these styles will be applied if your products_grid partial uses .product-card */
+        .product-card {
+            border: none;
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+            background: white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
         }
 
         .product-card:hover {
             transform: translateY(-8px);
-            box-shadow: 0 25px 60px rgba(0, 0, 0, .15);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
         }
 
-
-        /* IMAGE */
-
-        .product-image-wrapper {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .product-image {
-            width: 100%;
-            height: 260px;
+        .product-card .card-img-top {
+            height: 250px;
             object-fit: cover;
-            transition: .6s;
         }
 
-        .product-card:hover .product-image {
-            transform: scale(1.08);
+        .product-card .card-body {
+            padding: 1.5rem 1rem;
         }
 
-
-        /* BADGES */
-
-        .product-badges {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .product-badges .badge {
-            padding: 6px 10px;
-            border-radius: 20px;
-            font-size: 12px;
+        .product-card .card-title {
             font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
-        .discount-badge {
-            background: #ef4444;
-            color: #fff;
-        }
-
-        .new-badge {
-            background: #10b981;
-            color: #fff;
-        }
-
-        .featured-badge {
-            background: #f59e0b;
-            color: #fff;
-        }
-
-
-        /* BODY */
-
-        .product-body {
-            padding: 18px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .product-title a {
-            text-decoration: none;
-            color: #111827;
-            font-weight: 600;
-        }
-
-        .product-title a:hover {
-            color: #7C3AED;
-        }
-
-
-        /* PRICE */
-
-        .product-price {
-            margin-top: 10px;
-            margin-bottom: 15px;
-        }
-
-        .sale-price {
-            font-size: 18px;
+        .product-card .price {
+            font-size: 1.25rem;
             font-weight: 700;
-            color: #ef4444;
+            color: #2a5298;
         }
 
-        .old-price {
-            margin-left: 8px;
-            color: #9ca3af;
-            text-decoration: line-through;
-            font-size: 14px;
+        .product-card .btn-outline-primary {
+            border-radius: 50px;
+            border-color: #2a5298;
+            color: #2a5298;
+            padding: 0.4rem 1rem;
         }
 
-
-        /* BUTTON */
-
-        .product-btn {
-            display: inline-block;
-            text-align: center;
-            padding: 10px;
-            border-radius: 30px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #4F46E5, #7C3AED);
-            color: #fff;
-            text-decoration: none;
-            transition: .3s;
+        .product-card .btn-outline-primary:hover {
+            background: #2a5298;
+            color: white;
         }
 
-        .product-btn:hover {
-            opacity: .9;
-            color: #fff;
-        }
-
-
-        /* MOBILE */
-
-        @media(max-width:768px) {
-
-            .product-image {
-                height: 200px;
-            }
-
-        }
-
-        /* HERO */
-
-        .product-hero {
-            color: #fff;
-            margin-top: 80px;
-            padding: 40px 0;
-        }
-
-        .product-hero h1 {
-            font-size: clamp(28px, 4vw, 42px);
-        }
-
-        .product-hero p {
-            font-size: clamp(14px, 2vw, 18px);
-        }
-
-
-        /* PRODUCT CARD */
-
-        .product-card {
-            background: #fff;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .06);
-            transition: .35s;
-            height: 100%;
+        /* Pagination styling */
+        .pagination .page-link {
+            border: none;
+            color: #2a5298;
+            margin: 0 3px;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 500;
         }
 
-        .product-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, .12);
+        .pagination .page-item.active .page-link {
+            background: #2a5298;
+            color: white;
         }
 
-
-        /* IMAGE */
-
-        .product-image-wrapper {
-            position: relative;
-            overflow: hidden;
+        .pagination .page-link:hover {
+            background: #e9ecef;
+            color: #1e3c72;
         }
 
-        .product-image {
-            width: 100%;
-            height: 260px;
-            object-fit: cover;
-            transition: .6s;
-        }
-
-        .product-card:hover .product-image {
-            transform: scale(1.08);
-        }
-
-
-        /* BADGES */
-
-        .product-badges {
-            position: absolute;
-            top: 12px;
-            left: 12px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .product-badges .badge {
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-
-        /* BODY */
-
-        .product-body {
-            padding: 18px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .product-title {
-            font-size: 15px;
-            line-height: 1.4;
-        }
-
-        .product-title a {
-            text-decoration: none;
-            color: #111827;
-            font-weight: 600;
-        }
-
-        .product-title a:hover {
-            color: #7C3AED;
-        }
-
-
-        /* PRICE */
-
-        .product-price {
-            margin-top: 10px;
-            margin-bottom: 15px;
-        }
-
-        .sale-price {
-            font-size: 18px;
-            font-weight: 700;
-            color: #ef4444;
-        }
-
-        .old-price {
-            margin-left: 8px;
-            color: #9ca3af;
-            text-decoration: line-through;
-            font-size: 14px;
-        }
-
-
-        /* BUTTON */
-
-        .product-btn {
-            display: block;
-            text-align: center;
-            padding: 10px;
-            border-radius: 30px;
-            font-weight: 600;
-            background: linear-gradient(135deg, #4F46E5, #7C3AED);
-            color: #fff;
-            text-decoration: none;
-            transition: .3s;
-            font-size: 14px;
-        }
-
-        .product-btn:hover {
-            opacity: .9;
-            color: #fff;
-        }
-
-
-        /* TABLET */
-
-        @media (max-width:991px) {
-
-            .product-image {
-                height: 220px;
-            }
-
-            .product-body {
-                padding: 15px;
-            }
-
-        }
-
-
-        /* MOBILE */
-
-        @media (max-width:768px) {
-
-            .product-hero {
-                margin-top: 60px;
-                padding: 30px 0;
-            }
-
-            .product-image {
-                height: 200px;
-            }
-
-            .product-title {
-                font-size: 14px;
-            }
-
-            .sale-price {
-                font-size: 16px;
-            }
-
-            .product-btn {
-                padding: 8px;
-                font-size: 13px;
-            }
-
-        }
-
-
-        /* SMALL MOBILE */
-
-        @media (max-width:480px) {
-
-            .product-image {
-                height: 260px;
-            }
-
-            .product-body {
-                padding: 12px;
-            }
-
-            .product-badges .badge {
-                font-size: 10px;
-                padding: 4px 8px;
-            }
-
+        /* Newsletter */
+        .bg-light {
+            background: #f8f9fa !important;
         }
     </style>
-
 @endsection

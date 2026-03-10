@@ -72,29 +72,31 @@ class FrontendController extends Controller
         return view("frontend.index", compact('product', 'products', 'slider', 'cerficates', 'employee', 'client', 'blog', 'ads', 'data', 'news', 'missionvision', 'adminmessage', 'choose'));
     }
 
-    public function shop()
+    public function shop(Request $request)
     {
-        $response = Http::post(
-            'https://inventory.geelbd.com/api/feature/product',
-            [
-                'type' => 0
-            ]
-        );
+        $page = $request->get('page', 1);
+        $search = $request->get('search', null);
+        $sort = $request->get('sort', null);
 
+        $query = [
+            'type' => 0,
+            'page' => $page,
+        ];
+
+        if ($sort) {
+            $query['sort'] = $sort;
+        }
+
+        $response = Http::post('https://inventory.geelbd.com/api/feature/product', $query);
         $result = $response->json();
-
         $products = $result['data']['data'] ?? [];
+        $pagination = $result['data'] ?? [];
 
-        // Collection বানানো
-        $products = collect($products);
+        if ($request->ajax()) {
+            return view('frontend.partials.products_grid', compact('products', 'pagination', 'search', 'sort'))->render();
+        }
 
-        // নতুন product আগে দেখানোর জন্য descending (latest first)
-        // $products = $products->sortByDesc('id')->values();
-
-        // যদি পুরাতন product আগে দেখাতে চান
-        $products = $products->sortBy('id')->values();
-
-        return view('frontend.shop', compact('products'));
+        return view('frontend.shop', compact('products', 'pagination', 'search', 'sort'));
     }
 
     public function sell_page($id)
