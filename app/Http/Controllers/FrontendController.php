@@ -85,6 +85,15 @@ class FrontendController extends Controller
 
         $products = $result['data']['data'] ?? [];
 
+        // Collection বানানো
+        $products = collect($products);
+
+        // নতুন product আগে দেখানোর জন্য descending (latest first)
+        // $products = $products->sortByDesc('id')->values();
+
+        // যদি পুরাতন product আগে দেখাতে চান
+        $products = $products->sortBy('id')->values();
+
         return view('frontend.shop', compact('products'));
     }
 
