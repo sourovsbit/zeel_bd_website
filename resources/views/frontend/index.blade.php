@@ -100,7 +100,7 @@
                                 ? asset('/backend/Product/ProductImage/' . $productImage->image)
                                 : asset('placeholder-image.jpg');
                         @endphp
-                        <div class="col-xl-3 col-lg-4 col-md-6">
+                        <div class="col-xl-3 col-lg-4 col-md-6 p-3">
                             <div class="card product-card h-100 border-0 shadow-sm hover-shadow">
                                 <div class="position-relative overflow-hidden">
                                     <img src="{{ $imagePath }}" class="card-img-top product-img"
@@ -166,7 +166,7 @@
             <div class="row g-4">
                 @if (isset($cerficates) && count($cerficates) > 0)
                     @foreach ($cerficates as $certificate)
-                        <div class="col-lg-3 col-md-4 col-sm-6">
+                        <div class="col-lg-3 col-md-4 col-sm-6 p-3">
                             <div class="certificate-card text-center p-3 border rounded-3 shadow-sm h-100">
                                 <img src="{{ asset('/backend/Certificates/CertificatesImage/' . $certificate->image) }}"
                                     alt="{{ $certificate->title }}" class="img-fluid mb-3 rounded-3"
@@ -210,7 +210,7 @@
             <div class="row g-4">
                 @if (isset($blog) && count($blog) > 0)
                     @foreach ($blog as $post)
-                        <div class="col-lg-4 col-md-6">
+                        <div class="col-lg-4 col-md-6 p-3">
                             <div class="card h-100 border-0 shadow-sm hover-shadow">
                                 <img src="{{ asset('backend/Blogs/BlogsImage') }}/{{ $post->image }}"
                                     class="card-img-top" alt="{{ $post->title }}"
