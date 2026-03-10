@@ -79,7 +79,7 @@
     <!-- About Section End -->
 
     <!-- Products Section Start -->
-    <section class="products-section py-5 bg-light">
+    {{-- <section class="products-section py-5 bg-light">
         <div class="container">
             <div class="row">
                 <div class="col-12">
@@ -150,7 +150,7 @@
                 @endif
             </div>
         </div>
-    </section>
+    </section> --}}
     <!-- Products Section End -->
 
     <!-- Certificates Section Start -->
