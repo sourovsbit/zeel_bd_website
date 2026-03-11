@@ -5,7 +5,7 @@
     @include('frontend.layouts.navbar')
 
     <!-- Breadcrumb Section Begin -->
-    <div class="breacrumb-section main-content mt-3 pt-5">
+    <div class="breacrumb-section main-content mt-3">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">

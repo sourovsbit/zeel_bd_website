@@ -11,8 +11,8 @@
             <span class="badge bg-white text-dark px-3 py-2 rounded-pill mb-3 animate__animated animate__fadeInDown">
                 <i class="bi bi-gem me-1"></i> Premium Quality
             </span>
-            <h1 class="display-3 fw-bold mb-3 animate__animated animate__fadeInDown">Our Exclusive Collection</h1>
-            <p class="lead fs-4 mb-4 animate__animated animate__fadeInUp animate__delay-1s">
+            <h1 class="display-3 fw-bold mb-3 text-white animate__animated animate__fadeInDown">Our Exclusive Collection</h1>
+            <p class="lead fs-4 mb-4 text-white animate__animated animate__fadeInUp animate__delay-1s">
                 Premium products carefully selected for you
             </p>
             <!-- Search bar integrated into hero -->
@@ -64,6 +64,12 @@
     <div class="container pb-5" id="productsContainer">
         @include('frontend.partials.products_grid')
     </div>
+
+    <div class="container pb-2" id="searchStatus" style="display:none;">
+        <div class="alert alert-light border rounded-3 small mb-0" role="status">
+            Searching products...
+        </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -73,54 +79,102 @@
 
     <script>
         $(document).ready(function() {
+            let searchDebounceTimer;
+            let currentRequest = null;
+
             // Sync hero search with hidden field and main form
-            $('#heroSearch').on('input', function() {
+            $('#heroSearch').on('keyup', function() {
                 $('#searchHidden').val($(this).val());
+
+                clearTimeout(searchDebounceTimer);
+                searchDebounceTimer = setTimeout(function() {
+                    fetchProducts(null, true);
+                }, 500);
             });
 
             // Submit from hero search
             $('#heroSearchForm').on('submit', function(e) {
                 e.preventDefault();
                 $('#searchHidden').val($('#heroSearch').val());
-                fetchProducts();
+                fetchProducts(null, true);
             });
 
             // Main filter form submit
             $('#filterForm').on('submit', function(e) {
                 e.preventDefault();
-                fetchProducts();
+                fetchProducts(null, true);
+            });
+
+            // Auto apply sort without clicking submit button
+            $('#sort').on('change', function() {
+                fetchProducts(null, true);
             });
 
             // AJAX fetch function
-            function fetchProducts(url = null) {
-                let requestUrl = url ? url : "{{ url('shop') }}";
-                // Only send serialized data when it's NOT a pagination click
-                let requestData = url ? {} : $('#filterForm').serialize();
+            function fetchProducts(url = null, resetPage = false) {
+                let requestUrl = "{{ url('shop') }}";
+                let requestData = $('#filterForm').serializeArray();
 
-                $.ajax({
+                if (resetPage) {
+                    requestData = requestData.filter(function(item) {
+                        return item.name !== 'page';
+                    });
+                    requestData.push({
+                        name: 'page',
+                        value: 1
+                    });
+                }
+
+                // Keep filter/search active across all pagination clicks.
+                if (url) {
+                    let pageQuery = (url.split('?')[1] || '');
+                    let pageParams = new URLSearchParams(pageQuery);
+                    if (pageParams.has('page')) {
+                        requestData.push({
+                            name: 'page',
+                            value: pageParams.get('page')
+                        });
+                    }
+                }
+
+                let queryString = $.param(requestData);
+
+                if (currentRequest && currentRequest.readyState !== 4) {
+                    currentRequest.abort();
+                }
+
+                currentRequest = $.ajax({
                     url: requestUrl,
                     type: 'GET',
-                    data: requestData,
+                    data: queryString,
                     beforeSend: function() {
-                        $('#productsContainer').html(`
-                            <div class="text-center py-5">
-                                <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <p class="mt-3 text-muted">Curating the best picks...</p>
-                            </div>
-                        `);
+                        $('#searchStatus').show();
                     },
                     success: function(res) {
+                        $('#searchStatus').hide();
                         $('#productsContainer').html(res);
-                        if (!url) {
-                            // Update browser URL for filter/search only, not pagination
-                            history.pushState(null, '', requestUrl + '?' + $('#filterForm').serialize());
+
+                        // Keep browser URL synced for both filter and pagination states.
+                        history.pushState(null, '', queryString ? (requestUrl + '?' + queryString) : requestUrl);
+
+                        // Auto-scroll only when navigating pagination links.
+                        if (url) {
+                            $('html, body').animate({
+                                scrollTop: $('#productsContainer').offset().top - 50
+                            }, 300);
                         }
-                        // Smooth scroll to products
-                        $('html, body').animate({
-                            scrollTop: $('#productsContainer').offset().top - 50
-                        }, 400);
+                    },
+                    error: function(xhr) {
+                        $('#searchStatus').hide();
+                        if (xhr.statusText === 'abort') {
+                            return;
+                        }
+
+                        $('#productsContainer').html(`
+                            <div class="alert alert-warning text-center my-4" role="alert">
+                                Search failed. Please try again.
+                            </div>
+                        `);
                     }
                 });
             }

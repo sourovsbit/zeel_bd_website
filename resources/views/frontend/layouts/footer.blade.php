@@ -746,9 +746,9 @@
 </script>
 
 <!-- Essential JavaScript Files -->
-<script src="{{ asset('frontend/js/jquery-3.3.1.min.js') }}"></script>
-<script src="{{ asset('frontend/js/bootstrap.bundle.min.js') }}"></script>
-<script src="{{ asset('frontend/js/main.js') }}"></script>
+<script src="{{ asset('') }}frontend/js/jquery-3.3.1.min.js"></script>
+<script src="{{ asset('') }}frontend/js/bootstrap.bundle.min.js"></script>
+<script src="{{ asset('') }}frontend/js/main.js"></script>
 <script src="{{ asset('') }}frontend/js/jquery-ui.min.js"></script>
 <script src="{{ asset('') }}frontend/js/jquery.countdown.min.js"></script>
 <script src="{{ asset('') }}frontend/js/jquery.nice-select.min.js"></script>
@@ -756,6 +756,8 @@
 <script src="{{ asset('') }}frontend/js/jquery.dd.min.js"></script>
 <script src="{{ asset('') }}frontend/js/jquery.slicknav.js"></script>
 <script src="{{ asset('') }}frontend/js/owl.carousel.min.js"></script>
+
+@yield('scripts')
 
 </body>
 

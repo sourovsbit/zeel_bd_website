@@ -336,6 +336,7 @@
                     <ul class="submenu">
                         <li><a href="{{ url('about') }}">About Company</a></li>
                         <li><a href="{{ url('missionvision') }}">Mission & Vision</a></li>
+                        <li><a href="{{ url('certificates') }}">Certificates</a></li>
                         @if($adminmessage)
                             @foreach($adminmessage as $a)
                                 <li><a href="{{url('administrative_message')}}/{{$a->id}}">{{$a->title}} Message</a></li>

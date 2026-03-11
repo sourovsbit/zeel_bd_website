@@ -32,6 +32,8 @@ use App\Models\ProductSizeInfo;
 use App\Models\ProductColorInfo;
 use App\Models\ProductImage;
 use App\Models\ProductBrands;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 
@@ -44,6 +46,33 @@ class FrontendController extends Controller
 
         $product = ProductInformation::where('item_id', 3)->count();
         $products = ProductInformation::where('item_id', 3)->where('status', 1)->get();
+
+        $groupItems = $this->fetchGroupList();
+        $apiProducts = $this->fetchProductList();
+        $brands = $this->fetchBrands();
+
+        $itemWiseProducts = $groupItems->take(4)->map(function ($item) use ($apiProducts) {
+            $itemId = $item['id'] ?? null;
+
+            return [
+                'item_id' => $itemId,
+                'item_name' => $item['name'] ?? 'Item',
+                'categories' => collect($item['categories'] ?? [])->map(function ($category) {
+                    return [
+                        'id' => $category['id'] ?? null,
+                        'name' => $category['name'] ?? 'Category',
+                        'slug' => $category['slug'] ?? null,
+                    ];
+                })->filter(fn ($category) => !empty($category['id']))->values()->all(),
+                'products' => $apiProducts
+                    ->filter(function ($product) use ($itemId) {
+                        return (string) ($product['item_id'] ?? '') === (string) $itemId;
+                    })
+                    ->take(8)
+                    ->values()
+                    ->all(),
+            ];
+        })->values();
 
         $employee = Employee::where('status', 1)->orderBy('sl', 'ASC')->get();
 
@@ -69,28 +98,216 @@ class FrontendController extends Controller
 
         // return $slider;
 
-        return view("frontend.index", compact('product', 'products', 'slider', 'cerficates', 'employee', 'client', 'blog', 'ads', 'data', 'news', 'missionvision', 'adminmessage', 'choose'));
+        return view("frontend.index", compact('product', 'products', 'slider', 'cerficates', 'employee', 'client', 'blog', 'ads', 'data', 'news', 'missionvision', 'adminmessage', 'choose', 'itemWiseProducts', 'brands'));
+    }
+
+    public function brand_products(Request $request, $id)
+    {
+        $brands = $this->fetchBrands();
+        $brand = $brands->first(function ($brandItem) use ($id) {
+            return (string) ($brandItem['id'] ?? '') === (string) $id;
+        });
+
+        abort_if(!$brand, 404);
+
+        $allProducts = $this->fetchProductList()->filter(function ($product) use ($id) {
+            return (string) ($product['brand_id'] ?? '') === (string) $id;
+        })->values();
+
+        $page = max((int) $request->get('page', 1), 1);
+        $perPage = 12;
+        $pageItems = $allProducts->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $pagination = new LengthAwarePaginator(
+            $pageItems,
+            $allProducts->count(),
+            $perPage,
+            $page,
+            [
+                'path' => url('brand_products/' . $id),
+            ]
+        );
+
+        return view('frontend.brand_products', [
+            'brand' => $brand,
+            'products' => $pageItems,
+            'pagination' => $pagination,
+        ]);
+    }
+
+    public function item_products(Request $request, $id)
+    {
+        $groupItems = $this->fetchGroupList();
+        $item = $groupItems->first(function ($groupItem) use ($id) {
+            return (string) ($groupItem['id'] ?? '') === (string) $id;
+        });
+
+        abort_if(!$item, 404);
+
+        $allProducts = $this->fetchProductList()->filter(function ($product) use ($id) {
+            return (string) ($product['item_id'] ?? '') === (string) $id;
+        })->values();
+
+        $page = max((int) $request->get('page', 1), 1);
+        $perPage = 12;
+        $pageItems = $allProducts->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $pagination = new LengthAwarePaginator(
+            $pageItems,
+            $allProducts->count(),
+            $perPage,
+            $page,
+            [
+                'path' => url('item_products/' . $id),
+            ]
+        );
+
+        return view('frontend.item_products', [
+            'item' => $item,
+            'products' => $pageItems,
+            'pagination' => $pagination,
+        ]);
     }
 
     public function shop(Request $request)
     {
-        $page = $request->get('page', 1);
-        $search = $request->get('search', null);
-        $sort = $request->get('sort', null);
+        $page = max((int) $request->get('page', 1), 1);
+        $search = trim((string) $request->get('search', ''));
+        $sort = (string) $request->get('sort', '');
 
-        $query = [
-            'type' => 0,
-            'page' => $page,
-        ];
+        $endpoint = 'https://inventory.geelbd.com/api/feature/product';
+        $products = [];
+        $pagination = [];
 
-        if ($sort) {
-            $query['sort'] = $sort;
+        // Fallback for APIs that ignore search/sort parameters.
+        if ($search !== '' || $sort !== '') {
+            $cachedDataset = Cache::get('shop.feature_products.dataset.v1');
+
+            if (empty($cachedDataset)) {
+                try {
+                    $cachedDataset = Cache::remember('shop.feature_products.dataset.v1', now()->addMinutes(5), function () use ($endpoint) {
+                        $firstPageResponse = Http::timeout(10)->post($endpoint, [
+                            'type' => 0,
+                            'page' => 1,
+                        ]);
+
+                        if (!$firstPageResponse->successful()) {
+                            return [
+                                'per_page' => 12,
+                                'products' => [],
+                            ];
+                        }
+
+                        $firstPageResult = $firstPageResponse->json();
+                        $firstPageData = $firstPageResult['data'] ?? [];
+
+                        $perPage = (int) ($firstPageData['per_page'] ?? 12);
+                        $lastPage = (int) ($firstPageData['last_page'] ?? 1);
+                        $maxSyncPages = 20;
+                        $lastPage = min($lastPage, $maxSyncPages);
+
+                        $allProducts = collect($firstPageData['data'] ?? []);
+
+                        for ($p = 2; $p <= $lastPage; $p++) {
+                            $pageResponse = Http::timeout(10)->post($endpoint, [
+                                'type' => 0,
+                                'page' => $p,
+                            ]);
+
+                            if (!$pageResponse->successful()) {
+                                break;
+                            }
+
+                            $pageResult = $pageResponse->json();
+                            $pageProducts = $pageResult['data']['data'] ?? [];
+                            if (!empty($pageProducts)) {
+                                $allProducts = $allProducts->merge($pageProducts);
+                            }
+                        }
+
+                        return [
+                            'per_page' => $perPage,
+                            'products' => $allProducts->values()->all(),
+                        ];
+                    });
+                } catch (\Throwable $th) {
+                    $cachedDataset = [
+                        'per_page' => 12,
+                        'products' => [],
+                    ];
+                }
+            }
+
+            $perPage = (int) ($cachedDataset['per_page'] ?? 12);
+            $allProducts = collect($cachedDataset['products'] ?? []);
+
+            if ($search !== '') {
+                $needle = mb_strtolower($search);
+                $allProducts = $allProducts->filter(function ($product) use ($needle) {
+                    $name = mb_strtolower((string) ($product['name'] ?? ''));
+                    return str_contains($name, $needle);
+                })->values();
+            }
+
+            if ($sort === 'low_to_high' || $sort === 'high_to_low' || $sort === 'newest') {
+                $allProducts = $allProducts->sort(function ($a, $b) use ($sort) {
+                    $aPrice = (float) (($a['product_detail']['sale_price'] ?? 0) ?: ($a['product_detail']['regular_price'] ?? 0));
+                    $bPrice = (float) (($b['product_detail']['sale_price'] ?? 0) ?: ($b['product_detail']['regular_price'] ?? 0));
+                    $aId = (int) ($a['id'] ?? 0);
+                    $bId = (int) ($b['id'] ?? 0);
+
+                    if ($sort === 'low_to_high') {
+                        return $aPrice <=> $bPrice;
+                    }
+
+                    if ($sort === 'high_to_low') {
+                        return $bPrice <=> $aPrice;
+                    }
+
+                    return $bId <=> $aId;
+                })->values();
+            }
+
+            $total = $allProducts->count();
+            $pageItems = $allProducts->slice(($page - 1) * $perPage, $perPage)->values();
+
+            $paginator = new LengthAwarePaginator(
+                $pageItems,
+                $total,
+                $perPage,
+                $page,
+                [
+                    'path' => url('shop'),
+                    'query' => array_filter([
+                        'search' => $search,
+                        'sort' => $sort,
+                    ]),
+                ]
+            );
+
+            $products = $paginator->items();
+            $pagination = [
+                'links' => $paginator->linkCollection()->toArray(),
+            ];
+        } else {
+            try {
+                $baseQuery = [
+                    'type' => 0,
+                    'page' => $page,
+                    'search' => $search,
+                    'sort' => $sort,
+                ];
+
+                $response = Http::timeout(10)->post($endpoint, $baseQuery);
+                $result = $response->json();
+
+                $products = $result['data']['data'] ?? [];
+                $pagination = $result['data'] ?? [];
+            } catch (\Throwable $th) {
+                $products = [];
+                $pagination = ['links' => []];
+            }
         }
-
-        $response = Http::post('https://inventory.geelbd.com/api/feature/product', $query);
-        $result = $response->json();
-        $products = $result['data']['data'] ?? [];
-        $pagination = $result['data'] ?? [];
 
         if ($request->ajax()) {
             return view('frontend.partials.products_grid', compact('products', 'pagination', 'search', 'sort'))->render();
@@ -197,6 +414,11 @@ class FrontendController extends Controller
         return view("frontend.career_details", compact('data'));
     }
 
+    public function cerficate()
+    {
+        return redirect('gallery');
+    }
+
     public function privacypolicy()
     {
         $data = PrivacyPolicy::find(1);
@@ -239,7 +461,7 @@ class FrontendController extends Controller
             toastr()->success(__('Booking Done, Your Will Recieve A Call Or Email From Us'), __('common.success'), ['timeOut' => 5000]);
             return redirect()->back();
         } catch (\Throwable $th) {
-            toastr()->error($th->getMessages(), __('common.error'), ['timeOut' => 5000]);
+            toastr()->error($th->getMessage(), __('common.error'), ['timeOut' => 5000]);
             return redirect()->back();
         }
     }
@@ -262,7 +484,7 @@ class FrontendController extends Controller
             toastr()->success(__('Thank You For Your Valuable Feedback.'), __('common.success'), ['timeOut' => 5000]);
             return redirect()->back();
         } catch (\Throwable $th) {
-            toastr()->error($th->getMessages(), __('common.error'), ['timeOut' => 5000]);
+            toastr()->error($th->getMessage(), __('common.error'), ['timeOut' => 5000]);
             return redirect()->back();
         }
     }
@@ -310,7 +532,7 @@ class FrontendController extends Controller
             toastr()->success(__('Thank You For Your Valuable Message.'), __('common.success'), ['timeOut' => 5000]);
             return redirect()->back();
         } catch (\Throwable $th) {
-            toastr()->error($th->getMessages(), __('common.error'), ['timeOut' => 5000]);
+            toastr()->error($th->getMessage(), __('common.error'), ['timeOut' => 5000]);
             return redirect()->back();
         }
     }
@@ -328,5 +550,96 @@ class FrontendController extends Controller
     {
         $data = Administrative::where('status', 1)->where('id', $id)->firstOrFail();
         return view('frontend.administrative_message', compact('data'));
+    }
+
+    protected function fetchGroupList()
+    {
+        try {
+            return Cache::remember('home.group_list.v3', now()->addMinutes(10), function () {
+                $response = Http::timeout(10)->get('https://inventory.geelbd.com/api/group/list');
+                if (!$response->successful()) {
+                    return collect();
+                }
+
+                $payload = $response->json();
+
+                return collect($payload['data'] ?? []);
+            });
+        } catch (\Throwable $th) {
+            return collect();
+        }
+    }
+
+    protected function fetchProductList($maxPages = 10)
+    {
+        try {
+            return Cache::remember('home.product_list.v2', now()->addMinutes(10), function () use ($maxPages) {
+                $products = collect();
+
+                $firstResponse = Http::timeout(15)->post('https://inventory.geelbd.com/api/product/list', [
+                    'page' => 1,
+                ]);
+
+                if (!$firstResponse->successful()) {
+                    return collect();
+                }
+
+                $firstPayload = $firstResponse->json();
+                $firstData = $firstPayload['data'] ?? [];
+                $products = $products->merge($firstData['data'] ?? $firstData ?? []);
+
+                $lastPage = (int) ($firstData['last_page'] ?? 1);
+                $lastPage = min($lastPage, $maxPages);
+
+                for ($page = 2; $page <= $lastPage; $page++) {
+                    $response = Http::timeout(15)->post('https://inventory.geelbd.com/api/product/list', [
+                        'page' => $page,
+                    ]);
+
+                    if (!$response->successful()) {
+                        break;
+                    }
+
+                    $payload = $response->json();
+                    $data = $payload['data'] ?? [];
+                    $pageProducts = collect($data['data'] ?? []);
+
+                    if ($pageProducts->isEmpty()) {
+                        break;
+                    }
+
+                    $products = $products->merge($pageProducts);
+                }
+
+                return $products->values();
+            });
+        } catch (\Throwable $th) {
+            return collect();
+        }
+    }
+
+    public function certificates()
+    {
+        $data = Cerficates::where('status', 1)->orderBy('sl', 'ASC')->get();
+
+        return view("frontend.certificates", compact('data'));
+    }
+
+    protected function fetchBrands()
+    {
+        try {
+            return Cache::remember('home.brand_list.v1', now()->addMinutes(10), function () {
+                $response = Http::timeout(10)->post('https://inventory.geelbd.com/api/get/brands');
+                if (!$response->successful()) {
+                    return collect();
+                }
+
+                $payload = $response->json();
+
+                return collect($payload['data'] ?? []);
+            });
+        } catch (\Throwable $th) {
+            return collect();
+        }
     }
 }

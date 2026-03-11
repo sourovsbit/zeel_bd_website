@@ -26,10 +26,6 @@ use App\Http\Controllers\FrontendController;
 |
 */
 
-Route::get('/', function () {
-    return redirect('/login');
-});
-
 Route::get('error_solve',[AjaxController::class,'error_solve']);
 
 Route::get('/dashboard', function () {
@@ -79,10 +75,11 @@ Route::controller(FrontendController::class)->group(function () {
     Route::get('service_area/{id}', 'service_area');
     Route::get('service_detail/{id}', 'service_detail');
     Route::get('careers', 'careers');
-    Route::get('career_detail/{id}', 'career_detail');
+    Route::get('career_detail/{id}', 'career_details');
     Route::get('newsevent', 'newsevent');
     Route::get('newsevents_details/{id}', 'newsevents_details');
     Route::get('cerficate', 'cerficate');
+    Route::get('certificate', 'cerficate');
     Route::get('gallery', 'gallery');
     Route::get('videoalbum', 'videoalbum');
     Route::get('privacy_policy', 'privacy_policy');
@@ -92,6 +89,8 @@ Route::controller(FrontendController::class)->group(function () {
     Route::get('returnrefund', 'returnrefund');
     Route::get('serviceguarantee', 'serviceguarantee');
     Route::get('shop', 'shop');
+    Route::get('item_products/{id}', 'item_products');
+    Route::get('brand_products/{id}', 'brand_products');
     Route::get('team', 'team');
     Route::get('sell_page/{id}', 'sell_page');
     Route::post('BookService/{id}', 'BookService');
@@ -100,5 +99,6 @@ Route::controller(FrontendController::class)->group(function () {
     Route::post('sendMessage', 'sendMessage');
     Route::get('categorie_product/{id}', 'categorie_product');
     Route::get('administrative_message/{id}', 'administrative_message');
+    Route::get('certificates', 'certificates');
 });
 
