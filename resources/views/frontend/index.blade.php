@@ -81,7 +81,7 @@
                         $categoryId = $category['id'] ?? null;
                         $categoryImage = $category['image'] ?? null;
 
-                        $categoryImageUrl = $categoryImage ? '' . $categoryImage : asset('no-image.png');
+                        $categoryImageUrl = $categoryImage ?: 'https://via.placeholder.com/120x120?text=Category';
                     @endphp
 
                     <div class="col-lg-2 col-md-3 col-6 p-3">

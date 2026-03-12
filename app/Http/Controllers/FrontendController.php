@@ -50,7 +50,27 @@ class FrontendController extends Controller
         $groupItems = $this->fetchGroupList();
         $apiProducts = $this->fetchProductList();
         $brands = $this->fetchBrands();
-        $featuredCategories = $this->fetchCategories()->take(12)->values();
+        $categoryIndex = $this->fetchCategories()->keyBy(fn($category) => (string) ($category['id'] ?? ''));
+
+        $featuredCategories = $groupItems
+            ->flatMap(function ($item) use ($categoryIndex) {
+                return collect($item['categories'] ?? [])->map(function ($category) use ($categoryIndex) {
+                    $categoryId = $category['id'] ?? null;
+                    $apiCategory = !empty($categoryId) ? $categoryIndex->get((string) $categoryId) : null;
+                    $rawImage = $category['image'] ?? $category['icon'] ?? $category['logo'] ?? $category['thumbnail'] ?? null;
+
+                    return [
+                        'id' => $categoryId,
+                        'name' => $category['name'] ?? ($apiCategory['name'] ?? 'Category'),
+                        'slug' => $category['slug'] ?? ($apiCategory['slug'] ?? null),
+                        'image' => $apiCategory['image'] ?? $this->inventoryMediaUrl($rawImage),
+                    ];
+                });
+            })
+            ->filter(fn($category) => !empty($category['id']))
+            ->unique('id')
+            ->take(12)
+            ->values();
 
         $itemWiseProducts = $groupItems->take(4)->map(function ($item) use ($apiProducts) {
             $itemId = $item['id'] ?? null;
