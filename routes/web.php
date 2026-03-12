@@ -92,6 +92,7 @@ Route::controller(FrontendController::class)->group(function () {
     Route::get('item_products/{id}', 'item_products');
     Route::get('brand_products/{id}', 'brand_products');
     Route::get('category_products/{id}', 'category_products');
+    Route::get('all_categories', 'all_categories');
     Route::get('team', 'team');
     Route::get('sell_page/{id}', 'sell_page');
     Route::post('BookService/{id}', 'BookService');

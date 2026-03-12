@@ -59,25 +59,49 @@
     <section class="category-section py-5">
         <div class="container">
 
-            <div class="section-title text-center mb-4">
-                <h2>Featured <span>Categories</span></h2>
+            <!-- Section Title -->
+            <div class="row">
+                <div class="col-12 text-center mb-5">
+                    <h2 class="shop-title">
+                        Featured <span>Categories</span>
+                    </h2>
+                    <p class="shop-subtitle">
+                        Explore our most popular categories
+                    </p>
+                    <a href="{{ url('all_categories') }}" class="view-all-btn mt-2 d-inline-block">
+                        View All →
+                    </a>
+                </div>
             </div>
 
             <div class="row g-4">
                 @forelse ($featuredCategories ?? [] as $category)
-                    <div class="col-lg-2 col-md-3 col-6">
-                        <a href="{{ url('category_products/' . ($category['id'] ?? '')) }}" class="category-card">
-                            <img src="{{ $category['image'] ?? 'https://via.placeholder.com/90x90?text=Category' }}"
-                                alt="{{ $category['name'] ?? 'Category' }}">
-                            <h6>{{ \Illuminate\Support\Str::limit($category['name'] ?? 'Category', 20) }}</h6>
+                    @php
+                        $categoryName = $category['name'] ?? 'Category';
+                        $categoryId = $category['id'] ?? null;
+                        $categoryImage = $category['image'] ?? null;
+
+                        $categoryImageUrl = $categoryImage ? '' . $categoryImage : asset('no-image.png');
+                    @endphp
+
+                    <div class="col-lg-2 col-md-3 col-6 p-3">
+                        <a href="{{ $categoryId ? url('category_products/' . $categoryId) : '#' }}"
+                            class="category-card text-decoration-none">
+
+                            <img src="{{ $categoryImageUrl }}" alt="{{ $categoryName }}" class="img-fluid">
+
+                            <h6>
+                                {{ \Illuminate\Support\Str::limit($categoryName, 20) }}
+                            </h6>
+
                         </a>
                     </div>
+
                 @empty
                     <div class="col-12 text-center">
                         <h6 class="text-muted mb-0">No featured categories found</h6>
                     </div>
                 @endforelse
-
             </div>
 
         </div>
@@ -85,86 +109,52 @@
 
     <!-- Products Section - Premium Redesign -->
     <section class="products-section py-5">
-
         <div class="container">
-
             <!-- Section Title -->
-
             <div class="row">
-
                 <div class="col-12 text-center mb-5">
-
                     <h2 class="shop-title">
                         Shop By <span>Items</span>
                     </h2>
-
                     <p class="shop-subtitle">
-                        Explore our most popular gadget categories
+                        Explore our most popular items and find the perfect match for your needs.
                     </p>
-
                 </div>
-
             </div>
-
-
             @if (isset($itemWiseProducts) && $itemWiseProducts->count() > 0)
                 @foreach ($itemWiseProducts as $itemGroup)
                     @php
                         $itemName = $itemGroup['item_name'] ?? 'Item';
                         $itemProducts = collect($itemGroup['products'] ?? []);
                     @endphp
-
-
                     <!-- Item Group -->
-
                     <div class="item-group-card mb-5">
-
                         <div class="item-group-header">
-
                             <h3 class="item-title">
                                 {{ $itemName }}
                             </h3>
-
                             <a href="{{ url('item_products/' . $itemGroup['item_id']) }}" class="view-all-btn">
-
                                 View All →
-
                             </a>
-
                         </div>
-
-
                         <!-- Products -->
-
                         <div class="row g-4">
-
                             @forelse ($itemProducts as $product)
                                 @php
-
                                     $imagePath = !empty($product['product_images'][0]['path'])
                                         ? 'https://inventory.geelbd.com/storage/app/public' .
                                             $product['product_images'][0]['path']
                                         : 'https://via.placeholder.com/600x600?text=No+Image';
-
                                     $productName = $product['name'] ?? 'Product';
-
                                     $productId = $product['id'] ?? null;
-
                                     $regularPrice = (float) ($product['product_detail']['regular_price'] ?? 0);
-
                                     $salePrice = (float) ($product['product_detail']['sale_price'] ?? 0);
-
                                     $price = $salePrice ?: $regularPrice;
-
                                     $hasDiscount = $salePrice && $salePrice < $regularPrice;
-
                                     $discountPercent = $hasDiscount
                                         ? round((($regularPrice - $salePrice) / $regularPrice) * 100)
                                         : 0;
-
                                 @endphp
-
-
                                 <div class="col-xl-3 col-lg-4 col-md-6 p-3">
                                     <div class="product-card-new">
                                         <div class="product-image">
@@ -184,53 +174,31 @@
                                             <div class="price-area">
                                                 <span class="price">
                                                     ৳{{ number_format($price, 2) }}
-
                                                 </span>
-
-
                                                 @if ($hasDiscount)
                                                     <span class="old-price">
-
                                                         ৳{{ number_format($regularPrice, 2) }}
-
                                                     </span>
                                                 @endif
-
                                             </div>
-
                                         </div>
-
-
                                         <a href="{{ $productId ? url('sell_page/' . $productId) : '#' }}"
                                             class="quick-btn">
-
                                             View Details
-
                                         </a>
-
-
                                     </div>
-
                                 </div>
-
                             @empty
-
                                 <div class="col-12 text-center py-5">
-
                                     <h6>No products found for {{ $itemName }}</h6>
-
                                 </div>
                             @endforelse
-
                         </div>
-
                     </div>
                 @endforeach
             @else
                 <div class="text-center py-5">
-
                     <h5>No item-wise products found</h5>
-
                 </div>
             @endif
 
@@ -238,14 +206,54 @@
 
     </section>
 
+    <section class="brand-slider-section py-5" style="background:#f4f5f7;">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <p class="small text-uppercase mb-1" style="letter-spacing:2px; color:#d88a1f; font-weight:700;">Our
+                        Partners</p>
+                    <h3 class="fw-bold mb-0" style="color:#1f2d3d;">Featured Brands</h3>
+                </div>
+            </div>
+
+            @if (isset($brands) && $brands->count() > 0)
+                <div class="owl-carousel brand-carousel">
+                    @foreach ($brands as $brand)
+                        @php
+                            $brandName = $brand['name'] ?? 'Brand';
+                            $brandId = $brand['id'] ?? null;
+                            $brandImage = $brand['image'] ?? null;
+                            $brandImageUrl = $brandImage
+                                ? 'https://inventory.geelbd.com/storage/app/public' . $brandImage
+                                : null;
+                        @endphp
+                        <a href="{{ $brandId ? url('brand_products/' . $brandId) : '#' }}" class="text-decoration-none">
+                            <div
+                                class="brand-card bg-white rounded-4 border p-3 d-flex align-items-center justify-content-center">
+                                <img src="{{ $brandImageUrl }}" alt="{{ $brandName }}" class="img-fluid"
+                                    style="max-height:58px; object-fit:contain;">
+                                {{-- <div class="brand-fallback fw-bold text-uppercase">
+                                    {{ \Illuminate\Support\Str::limit($brandName, 14, '') }}</div> --}}
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
+
     <!-- What We Do Section Start -->
     <section class="what-we-do py-5 bg-light">
         <div class="container">
+            <!-- Section Title -->
             <div class="row">
-                <div class="col-12">
-                    <div class="section-title text-center mb-5">
-                        <h2 class="display-5 fw-bold text-primary">What We Do</h2>
-                    </div>
+                <div class="col-12 text-center mb-5">
+                    <h2 class="shop-title">
+                        What<span> We Do</span>
+                    </h2>
+                    <p class="shop-subtitle">
+                        We are committed to providing top-quality products and exceptional service to our customers.
+                    </p>
                 </div>
             </div>
             <div class="row g-4">
@@ -332,86 +340,50 @@
         }
 
         .item-title {
-
-            font-size: 22px;
-
+            font-size: 30px;
             font-weight: 700;
-
             color: #222;
-
         }
 
-
         /* view all */
-
         .view-all-btn {
-
             background: #ff6b35;
-
             color: white;
-
             padding: 7px 18px;
-
             border-radius: 30px;
-
             font-size: 14px;
-
             text-decoration: none;
-
             transition: .3s;
-
         }
 
         .view-all-btn:hover {
-
             background: #ff4b10;
-
             color: white;
-
         }
 
-
         /* product card */
-
         .product-card-new {
-
             background: #fff;
-
             border-radius: 14px;
-
             padding: 15px;
-
             height: 100%;
-
             transition: .35s;
-
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
-
             display: flex;
-
             flex-direction: column;
-
         }
 
         .product-card-new:hover {
-
             transform: translateY(-8px);
-
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-
         }
 
 
         /* product image */
-
         .product-image {
-
             position: relative;
-
             text-align: center;
-
             margin-bottom: 12px;
-
         }
 
         .product-image img {
@@ -422,65 +394,40 @@
             object-fit: contain;
         }
 
-
         /* discount badge */
-
         .discount-badge {
-
             position: absolute;
-
             top: 10px;
-
             left: 10px;
-
             background: #ff3b3b;
-
             color: white;
-
             padding: 4px 10px;
-
             border-radius: 20px;
-
             font-size: 12px;
-
             font-weight: 600;
-
         }
 
 
         /* product info */
 
         .product-info h6 {
-
             font-size: 15px;
-
             font-weight: 600;
-
             min-height: 40px;
-
         }
 
         .product-info a {
-
             text-decoration: none;
-
             color: #333;
-
         }
-
 
         /* price */
 
         .price-area {
-
             display: flex;
-
             align-items: center;
-
             gap: 8px;
-
             margin-top: 6px;
-
         }
 
         .sale-price {
@@ -753,28 +700,43 @@
             }
         }
 
+        .category-section {
+            background: #f8fafc;
+        }
+
         .category-card {
             display: block;
             text-align: center;
-            padding: 20px;
+            padding: 25px 15px;
             background: #fff;
-            border-radius: 12px;
-            transition: .3s;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            border-radius: 14px;
+            transition: all .35s ease;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+            border: 1px solid #f1f1f1;
+            height: 100%;
         }
 
         .category-card img {
-            height: 45px;
-            margin-bottom: 10px;
+            height: 55px;
+            margin-bottom: 12px;
+            transition: .3s;
+        }
+
+        .category-card h6 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 0;
         }
 
         .category-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+            transform: translateY(-8px);
+            box-shadow: 0 18px 35px rgba(0, 0, 0, 0.12);
+            border-color: #ff6b35;
         }
 
-        .section-title h2 span {
-            color: #ff6b35;
+        .category-card:hover img {
+            transform: scale(1.1);
         }
     </style>
     <script>

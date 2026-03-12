@@ -204,6 +204,53 @@ class FrontendController extends Controller
         ]);
     }
 
+    public function all_categories()
+    {
+        $groupItems = $this->fetchGroupList();
+        $categoryIndex = $this->fetchCategories()->keyBy(fn($category) => (string) ($category['id'] ?? ''));
+        $productCountByCategory = $this->fetchProductList()
+            ->filter(fn($product) => !empty($product['category_id']))
+            ->groupBy(fn($product) => (string) ($product['category_id'] ?? ''))
+            ->map(fn($products) => $products->count());
+
+        $itemWiseCategories = $groupItems->map(function ($item) use ($categoryIndex, $productCountByCategory) {
+            $categories = collect($item['categories'] ?? [])->map(function ($category) use ($categoryIndex, $productCountByCategory) {
+                $categoryId = $category['id'] ?? null;
+                $categoryIdKey = (string) $categoryId;
+                $apiCategory = !empty($categoryId) ? $categoryIndex->get((string) $categoryId) : null;
+                $rawImage = $category['image'] ?? $category['icon'] ?? $category['logo'] ?? $category['thumbnail'] ?? null;
+
+                return [
+                    'id' => $categoryId,
+                    'name' => $category['name'] ?? ($apiCategory['name'] ?? 'Category'),
+                    'slug' => $category['slug'] ?? ($apiCategory['slug'] ?? null),
+                    'image' => $apiCategory['image'] ?? $this->inventoryMediaUrl($rawImage),
+                    'products_count' => (int) ($productCountByCategory->get($categoryIdKey, 0)),
+                    'is_popular' => (bool) (
+                        $apiCategory['is_popular'] ??
+                            $apiCategory['popular'] ??
+                            $category['is_popular'] ??
+                            $category['popular'] ??
+                            false
+                    ),
+                ];
+            })->filter(fn($category) => !empty($category['id']))
+                ->unique('id')
+                ->values();
+
+            return [
+                'item_id' => $item['id'] ?? null,
+                'item_name' => $item['name'] ?? 'Item',
+                'categories' => $categories,
+            ];
+        })->filter(fn($itemGroup) => collect($itemGroup['categories'])->isNotEmpty())
+            ->values();
+
+        return view('frontend.all_categories', [
+            'itemWiseCategories' => $itemWiseCategories,
+        ]);
+    }
+
     public function shop(Request $request)
     {
         $page = max((int) $request->get('page', 1), 1);
@@ -633,6 +680,14 @@ class FrontendController extends Controller
                             'name' => $category['name'] ?? $category['category_name'] ?? 'Category',
                             'slug' => $category['slug'] ?? null,
                             'image' => $this->inventoryMediaUrl($rawImage),
+                            'items_count' => (int) (
+                                $category['items_count'] ??
+                                    $category['item_count'] ??
+                                    $category['product_count'] ??
+                                    $category['products_count'] ??
+                                    0
+                            ),
+                            'is_popular' => (bool) ($category['is_popular'] ?? $category['popular'] ?? false),
                         ];
                     })
                     ->filter(fn($category) => !empty($category['id']))
