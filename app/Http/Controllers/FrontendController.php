@@ -50,6 +50,7 @@ class FrontendController extends Controller
         $groupItems = $this->fetchGroupList();
         $apiProducts = $this->fetchProductList();
         $brands = $this->fetchBrands();
+        $featuredCategories = $this->fetchCategories()->take(12)->values();
 
         $itemWiseProducts = $groupItems->take(4)->map(function ($item) use ($apiProducts) {
             $itemId = $item['id'] ?? null;
@@ -98,7 +99,7 @@ class FrontendController extends Controller
 
         // return $slider;
 
-        return view("frontend.index", compact('product', 'products', 'slider', 'cerficates', 'employee', 'client', 'blog', 'ads', 'data', 'news', 'missionvision', 'adminmessage', 'choose', 'itemWiseProducts', 'brands'));
+        return view("frontend.index", compact('product', 'products', 'slider', 'cerficates', 'employee', 'client', 'blog', 'ads', 'data', 'news', 'missionvision', 'adminmessage', 'choose', 'itemWiseProducts', 'brands', 'featuredCategories'));
     }
 
     public function brand_products(Request $request, $id)
@@ -164,6 +165,40 @@ class FrontendController extends Controller
 
         return view('frontend.item_products', [
             'item' => $item,
+            'products' => $pageItems,
+            'pagination' => $pagination,
+        ]);
+    }
+
+    public function category_products(Request $request, $id)
+    {
+        $categories = $this->fetchCategories();
+        $category = $categories->first(function ($categoryItem) use ($id) {
+            return (string) ($categoryItem['id'] ?? '') === (string) $id;
+        });
+
+        abort_if(!$category, 404);
+
+        $allProducts = $this->fetchProductList()->filter(function ($product) use ($id) {
+            return (string) ($product['category_id'] ?? '') === (string) $id;
+        })->values();
+
+        $page = max((int) $request->get('page', 1), 1);
+        $perPage = 12;
+        $pageItems = $allProducts->slice(($page - 1) * $perPage, $perPage)->values();
+
+        $pagination = new LengthAwarePaginator(
+            $pageItems,
+            $allProducts->count(),
+            $perPage,
+            $page,
+            [
+                'path' => url('category_products/' . $id),
+            ]
+        );
+
+        return view('frontend.category_products', [
+            'category' => $category,
             'products' => $pageItems,
             'pagination' => $pagination,
         ]);
@@ -570,6 +605,45 @@ class FrontendController extends Controller
         }
     }
 
+    protected function fetchCategories()
+    {
+        try {
+            return Cache::remember('home.category_list.v1', now()->addMinutes(10), function () {
+                $response = Http::timeout(10)->get('https://inventory.geelbd.com/api/category/list');
+
+                if (!$response->successful()) {
+                    $fallbackResponse = Http::timeout(10)->post('https://inventory.geelbd.com/api/category/list');
+                    if (!$fallbackResponse->successful()) {
+                        return collect();
+                    }
+
+                    $payload = $fallbackResponse->json();
+                } else {
+                    $payload = $response->json();
+                }
+
+                $rawCategories = collect($payload['data']['data'] ?? $payload['data'] ?? []);
+
+                return $rawCategories
+                    ->map(function ($category) {
+                        $rawImage = $category['image'] ?? $category['icon'] ?? $category['logo'] ?? $category['thumbnail'] ?? null;
+
+                        return [
+                            'id' => $category['id'] ?? null,
+                            'name' => $category['name'] ?? $category['category_name'] ?? 'Category',
+                            'slug' => $category['slug'] ?? null,
+                            'image' => $this->inventoryMediaUrl($rawImage),
+                        ];
+                    })
+                    ->filter(fn($category) => !empty($category['id']))
+                    ->unique('id')
+                    ->values();
+            });
+        } catch (\Throwable $th) {
+            return collect();
+        }
+    }
+
     protected function fetchProductList($maxPages = 10)
     {
         try {
@@ -641,5 +715,18 @@ class FrontendController extends Controller
         } catch (\Throwable $th) {
             return collect();
         }
+    }
+
+    protected function inventoryMediaUrl($path)
+    {
+        if (empty($path)) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return 'https://inventory.geelbd.com/storage/app/public/' . ltrim($path, '/');
     }
 }

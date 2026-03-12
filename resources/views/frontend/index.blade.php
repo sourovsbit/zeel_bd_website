@@ -56,224 +56,186 @@
 
     </section>
     <!-- Hero Slider End -->
+    <section class="category-section py-5">
+        <div class="container">
+
+            <div class="section-title text-center mb-4">
+                <h2>Featured <span>Categories</span></h2>
+            </div>
+
+            <div class="row g-4">
+                @forelse ($featuredCategories ?? [] as $category)
+                    <div class="col-lg-2 col-md-3 col-6">
+                        <a href="{{ url('category_products/' . ($category['id'] ?? '')) }}" class="category-card">
+                            <img src="{{ $category['image'] ?? 'https://via.placeholder.com/90x90?text=Category' }}"
+                                alt="{{ $category['name'] ?? 'Category' }}">
+                            <h6>{{ \Illuminate\Support\Str::limit($category['name'] ?? 'Category', 20) }}</h6>
+                        </a>
+                    </div>
+                @empty
+                    <div class="col-12 text-center">
+                        <h6 class="text-muted mb-0">No featured categories found</h6>
+                    </div>
+                @endforelse
+
+            </div>
+
+        </div>
+    </section>
 
     <!-- Products Section - Premium Redesign -->
-    <section class="products-section py-5" style="background: #f9fafc;">
+    <section class="products-section py-5">
+
         <div class="container">
-            <!-- Section Title with Gradient Underline -->
+
+            <!-- Section Title -->
+
             <div class="row">
+
                 <div class="col-12 text-center mb-5">
-                    <h2 class="display-5 fw-bold" style="color: #1a2639; letter-spacing: -0.02em;">
-                        Item Wise Products
+
+                    <h2 class="shop-title">
+                        Shop By <span>Items</span>
                     </h2>
-                    <p class="text-secondary-emphasis fs-5">Browse products by item category</p>
-                    <div class="mx-auto mt-3"
-                        style="width: 80px; height: 4px; background: linear-gradient(90deg, #3a7bd5, #00d2ff); border-radius: 2px;">
-                    </div>
+
+                    <p class="shop-subtitle">
+                        Explore our most popular gadget categories
+                    </p>
+
                 </div>
+
             </div>
+
 
             @if (isset($itemWiseProducts) && $itemWiseProducts->count() > 0)
                 @foreach ($itemWiseProducts as $itemGroup)
                     @php
                         $itemName = $itemGroup['item_name'] ?? 'Item';
-                        $itemCategories = collect($itemGroup['categories'] ?? []);
                         $itemProducts = collect($itemGroup['products'] ?? []);
                     @endphp
 
-                    <!-- Item Group Card -->
-                    <div class="mb-5 p-4 rounded-4">
-                        <!-- Group Header with Icon -->
-                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="rounded-circle p-3"
-                                    style="background: linear-gradient(145deg, #e6e9f0, #ffffff); box-shadow: 5px 5px 10px #d9dce3, -5px -5px 10px #ffffff;">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2b3a67"
-                                        stroke-width="2">
-                                        <rect x="2" y="7" width="20" height="14" rx="2" ry="2">
-                                        </rect>
-                                        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h4 class="fw-bold mb-1" style="color: #1e2b3f;">{{ $itemName }}</h4>
-                                    @if ($itemCategories->isNotEmpty())
-                                        <div class="d-flex flex-wrap gap-2 mt-1">
-                                            @foreach ($itemCategories as $category)
-                                                @php
-                                                    $colors = ['#ffe8e0', '#e0f2fe', '#e0f4e8', '#f3e8ff', '#fff3d6'];
-                                                    $color = $colors[array_rand($colors)];
-                                                @endphp
-                                                <span class="badge px-3 py-2 rounded-pill fw-normal"
-                                                    style="background: {{ $color }}; color: #2b3a67;">{{ $category['name'] }}</span>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
-                            <a href="{{ url('item_products/' . $itemGroup['item_id']) }}"
-                                class="btn btn-outline-primary rounded-pill px-4 py-2 fw-semibold d-flex align-items-center gap-2"
-                                style="border-color: #cbd5e1; color: #334155;">
-                                <span>View All</span>
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                                    <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                        stroke-linejoin="round" />
-                                </svg>
+
+                    <!-- Item Group -->
+
+                    <div class="item-group-card mb-5">
+
+                        <div class="item-group-header">
+
+                            <h3 class="item-title">
+                                {{ $itemName }}
+                            </h3>
+
+                            <a href="{{ url('item_products/' . $itemGroup['item_id']) }}" class="view-all-btn">
+
+                                View All →
+
                             </a>
+
                         </div>
 
-                        <!-- Product Grid -->
+
+                        <!-- Products -->
+
                         <div class="row g-4">
+
                             @forelse ($itemProducts as $product)
                                 @php
+
                                     $imagePath = !empty($product['product_images'][0]['path'])
                                         ? 'https://inventory.geelbd.com/storage/app/public' .
                                             $product['product_images'][0]['path']
                                         : 'https://via.placeholder.com/600x600?text=No+Image';
+
                                     $productName = $product['name'] ?? 'Product';
+
                                     $productId = $product['id'] ?? null;
+
                                     $regularPrice = (float) ($product['product_detail']['regular_price'] ?? 0);
+
                                     $salePrice = (float) ($product['product_detail']['sale_price'] ?? 0);
+
                                     $price = $salePrice ?: $regularPrice;
+
                                     $hasDiscount = $salePrice && $salePrice < $regularPrice;
+
                                     $discountPercent = $hasDiscount
                                         ? round((($regularPrice - $salePrice) / $regularPrice) * 100)
                                         : 0;
+
                                 @endphp
 
+
                                 <div class="col-xl-3 col-lg-4 col-md-6 p-3">
-                                    <div class="card product-card h-100 border-0 bg-white rounded-4 overflow-hidden"
-                                        style="transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94); box-shadow: 0 15px 35px rgba(0,0,0,0.02), 0 0 0 1px rgba(0,0,0,0.01);">
-
-                                        <!-- Image Container with Overlay -->
-                                        <div class="position-relative overflow-hidden"
-                                            style="border-radius: 16px 16px 0 0;">
-                                            <img src="{{ $imagePath }}" class="card-img-top product-img"
-                                                alt="{{ $productName }}"
-                                                style="height: 260px; object-fit: cover; transition: transform 0.6s ease;">
-
-                                            <!-- Discount Badge -->
+                                    <div class="product-card-new">
+                                        <div class="product-image">
+                                            <img src="{{ $imagePath }}" alt="{{ $productName }}">
                                             @if ($hasDiscount)
-                                                <span
-                                                    class="position-absolute top-0 start-0 m-3 badge bg-danger rounded-pill px-3 py-2 fw-semibold"
-                                                    style="background: #ff4757 !important;">-{{ $discountPercent }}%</span>
+                                                <span class="discount-badge">
+                                                    -{{ $discountPercent }}%
+                                                </span>
                                             @endif
-
-                                            <!-- Overlay Buttons (appear on hover) -->
-                                            <div class="position-absolute top-0 end-0 p-3 d-flex flex-column gap-2 opacity-0 hover-overlay"
-                                                style="transition: opacity 0.3s;">
-                                                <a href="#" class="btn btn-light rounded-circle shadow-lg"
-                                                    style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                        stroke="#2b3a67" stroke-width="2">
-                                                        <path
-                                                            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
-                                                        </path>
-                                                    </svg>
-                                                </a>
-                                                <a href="{{ $productId ? url('sell_page/' . $productId) : '#' }}"
-                                                    class="btn btn-light rounded-circle shadow-lg"
-                                                    style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">
-                                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                                                        stroke="#2b3a67" stroke-width="2">
-                                                        <circle cx="12" cy="12" r="3"></circle>
-                                                        <path
-                                                            d="M22 12c-2.667 4.667-6 7-10 7s-7.333-2.333-10-7c2.667-4.667 6-7 10-7s7.333 2.333 10 7z">
-                                                        </path>
-                                                    </svg>
-                                                </a>
-                                            </div>
                                         </div>
-
-                                        <!-- Card Body -->
-                                        <div class="card-body p-3">
-                                            <h6 class="card-title mb-2 fw-semibold" style="font-size: 1rem;">
-                                                <a href="{{ $productId ? url('sell_page/' . $productId) : '#' }}"
-                                                    class="text-decoration-none text-dark stretched-link">
+                                        <div class="product-info">
+                                            <h6>
+                                                <a href="{{ $productId ? url('sell_page/' . $productId) : '#' }}">
                                                     {{ \Illuminate\Support\Str::limit($productName, 45) }}
                                                 </a>
                                             </h6>
+                                            <div class="price-area">
+                                                <span class="price">
+                                                    ৳{{ number_format($price, 2) }}
 
-                                            <!-- Price Section -->
-                                            <div class="d-flex align-items-center gap-2 mt-2">
-                                                <span class="fw-bold fs-5"
-                                                    style="color: #1e2b3f;">৳{{ number_format($price, 2) }}</span>
+                                                </span>
+
+
                                                 @if ($hasDiscount)
-                                                    <span
-                                                        class="text-muted text-decoration-line-through small">৳{{ number_format($regularPrice, 2) }}</span>
+                                                    <span class="old-price">
+
+                                                        ৳{{ number_format($regularPrice, 2) }}
+
+                                                    </span>
                                                 @endif
+
                                             </div>
 
-                                            <!-- Rating Placeholder (optional) -->
-                                            <div class="d-flex align-items-center gap-1 mt-2 small text-warning">
-                                                ★ ★ ★ ★ ☆ <span class="text-muted ms-1">(24)</span>
-                                            </div>
                                         </div>
 
-                                        <!-- Add to Cart / View Details -->
-                                        <div class="card-footer bg-transparent border-0 p-3 pt-0">
-                                            <a href="{{ $productId ? url('sell_page/' . $productId) : '#' }}"
-                                                class="btn w-100 rounded-pill fw-semibold py-2"
-                                                style="background: #edf2f9; color: #1e2b3f; border: 1px solid #dbe7f2; transition: all 0.2s;">
-                                                Quick View
-                                            </a>
-                                        </div>
+
+                                        <a href="{{ $productId ? url('sell_page/' . $productId) : '#' }}"
+                                            class="quick-btn">
+
+                                            View Details
+
+                                        </a>
+
+
                                     </div>
+
                                 </div>
+
                             @empty
-                                <div class="col-12">
-                                    <div class="text-center py-5 bg-white border rounded-4">
-                                        <h6 class="text-muted mb-2">No products found for {{ $itemName }}</h6>
-                                        <p class="text-muted small mb-0">Products for this item will appear here when
-                                            available.</p>
-                                    </div>
+
+                                <div class="col-12 text-center py-5">
+
+                                    <h6>No products found for {{ $itemName }}</h6>
+
                                 </div>
                             @endforelse
+
                         </div>
+
                     </div>
                 @endforeach
             @else
-                <div class="row">
-                    <div class="col-12 text-center py-5">
-                        <h5 class="text-secondary-emphasis mb-0">No item-wise products found.</h5>
-                    </div>
+                <div class="text-center py-5">
+
+                    <h5>No item-wise products found</h5>
+
                 </div>
             @endif
-        </div>
-    </section>
 
-    <section class="brand-slider-section py-5" style="background:#f4f5f7;">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <div>
-                    <p class="small text-uppercase mb-1" style="letter-spacing:2px; color:#d88a1f; font-weight:700;">Our
-                        Partners</p>
-                    <h3 class="fw-bold mb-0" style="color:#1f2d3d;">Featured Brands</h3>
-                </div>
-            </div>
-
-            @if (isset($brands) && $brands->count() > 0)
-                <div class="owl-carousel brand-carousel">
-                    @foreach ($brands as $brand)
-                        @php
-                            $brandName = $brand['name'] ?? 'Brand';
-                            $brandId = $brand['id'] ?? null;
-                            $brandImage = $brand['image'] ?? null;
-                            $brandImageUrl = $brandImage
-                                ? 'https://inventory.geelbd.com/storage/app/public' . $brandImage
-                                : null;
-                        @endphp
-                        <a href="{{ $brandId ? url('brand_products/' . $brandId) : '#' }}" class="text-decoration-none">
-                            <div
-                                class="brand-card bg-white rounded-4 border p-3 d-flex align-items-center justify-content-center">
-                                <img src="{{ $brandImageUrl }}" alt="{{ $brandName }}" class="img-fluid" style="max-height:58px; object-fit:contain;">
-                                <div class="brand-fallback fw-bold text-uppercase">{{ \Illuminate\Support\Str::limit($brandName, 14, '') }}</div>
-                            </div>
-                        </a>
-                    @endforeach
-                </div>
-            @endif
         </div>
+
     </section>
 
     <!-- What We Do Section Start -->
@@ -314,79 +276,260 @@
 
 
     <style>
-        /* custom premium touches */
-        body {
-            background: #f9fafc;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        .products-section {
+
+            background: linear-gradient(135deg, #f5f7ff, #ffffff);
+
         }
 
-        .product-card {
-            transition: all 0.3s cubic-bezier(0.2, 0, 0, 1);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.02), 0 0 0 1px rgba(0, 0, 0, 0.02);
+        /* title */
+
+        .shop-title {
+
+            font-size: 36px;
+
+            font-weight: 700;
+
         }
 
-        .product-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 25px 35px -8px rgba(0, 35, 70, 0.1), 0 0 0 1px rgba(60, 100, 180, 0.15);
+        .shop-title span {
+
+            color: #ff6b35;
+
         }
 
-        .product-img {
-            height: 240px;
-            object-fit: cover;
-            transition: transform 0.5s ease;
+        .shop-subtitle {
+
+            color: #777;
+
+            font-size: 16px;
+
+            margin-top: 8px;
+
         }
 
-        .product-card:hover .product-img {
-            transform: scale(1.05);
+
+        /* item group card */
+
+        .item-group-card {
+            padding: 30px;
+            border-radius: 16px;
         }
 
-        /* overlay actions – subtle fade */
-        .hover-actions {
-            transition: opacity 0.25s ease, transform 0.2s ease;
-            opacity: 0;
-            transform: translateY(5px);
-        }
 
-        .product-card:hover .hover-actions {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        /* group header */
 
-        .action-btn {
-            width: 38px;
-            height: 38px;
+        .item-group-header {
+
             display: flex;
+
+            justify-content: space-between;
+
             align-items: center;
-            justify-content: center;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(2px);
-            border: 1px solid rgba(220, 230, 245, 0.6);
-            border-radius: 50%;
-            color: #1e2b3f;
-            transition: background 0.15s, color 0.15s, border-color 0.15s;
-            box-shadow: 0 4px 10px rgba(0, 10, 30, 0.08);
+
+            margin-bottom: 25px;
+
         }
 
-        .action-btn:hover {
-            background: #ffffff;
-            border-color: #9bb7d4;
-            color: #0a1a2c;
+        .item-title {
+
+            font-size: 22px;
+
+            font-weight: 700;
+
+            color: #222;
+
         }
 
-        .badge-custom {
-            font-size: 0.7rem;
-            font-weight: 500;
-            padding: 0.3rem 0.7rem;
+
+        /* view all */
+
+        .view-all-btn {
+
+            background: #ff6b35;
+
+            color: white;
+
+            padding: 7px 18px;
+
             border-radius: 30px;
-            background: #f0f4fe;
-            color: #1e2f4a;
-            transition: background 0.15s;
-            border: 1px solid #d9e2f0;
-            line-height: 1.2;
+
+            font-size: 14px;
+
+            text-decoration: none;
+
+            transition: .3s;
+
         }
 
-        .badge-custom:hover {
-            background: #e4ecfc;
+        .view-all-btn:hover {
+
+            background: #ff4b10;
+
+            color: white;
+
+        }
+
+
+        /* product card */
+
+        .product-card-new {
+
+            background: #fff;
+
+            border-radius: 14px;
+
+            padding: 15px;
+
+            height: 100%;
+
+            transition: .35s;
+
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+
+            display: flex;
+
+            flex-direction: column;
+
+        }
+
+        .product-card-new:hover {
+
+            transform: translateY(-8px);
+
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+
+        }
+
+
+        /* product image */
+
+        .product-image {
+
+            position: relative;
+
+            text-align: center;
+
+            margin-bottom: 12px;
+
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            transition: .4s;
+            object-fit: contain;
+        }
+
+
+        /* discount badge */
+
+        .discount-badge {
+
+            position: absolute;
+
+            top: 10px;
+
+            left: 10px;
+
+            background: #ff3b3b;
+
+            color: white;
+
+            padding: 4px 10px;
+
+            border-radius: 20px;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+        }
+
+
+        /* product info */
+
+        .product-info h6 {
+
+            font-size: 15px;
+
+            font-weight: 600;
+
+            min-height: 40px;
+
+        }
+
+        .product-info a {
+
+            text-decoration: none;
+
+            color: #333;
+
+        }
+
+
+        /* price */
+
+        .price-area {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            margin-top: 6px;
+
+        }
+
+        .sale-price {
+
+            color: #ff3b3b;
+
+            font-weight: 700;
+
+            font-size: 18px;
+
+        }
+
+        .old-price {
+
+            text-decoration: line-through;
+
+            color: #888;
+
+            font-size: 13px;
+
+        }
+
+
+        /* button */
+
+        .quick-btn {
+            margin-top: auto;
+            display: block;
+            text-align: center;
+            background: linear-gradient(135deg, #6366F1, #8B5CF6);
+            color: white;
+            padding: 9px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: .3s;
+        }
+
+        .quick-btn:hover {
+            background: linear-gradient(135deg, #4F46E5, #7C3AED);
+            color: white;
+        }
+
+        .price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #6366F1;
+            margin-bottom: 14px;
         }
 
         .section-title {
@@ -608,6 +751,30 @@
             .hero-text h1 {
                 font-size: 18px;
             }
+        }
+
+        .category-card {
+            display: block;
+            text-align: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            transition: .3s;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .category-card img {
+            height: 45px;
+            margin-bottom: 10px;
+        }
+
+        .category-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-title h2 span {
+            color: #ff6b35;
         }
     </style>
     <script>

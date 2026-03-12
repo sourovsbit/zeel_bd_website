@@ -1,4 +1,4 @@
-<div class="row g-4" id="product-grid">
+<div class="row g-4 product-box" id="product-grid">
     @if (!empty($products))
         @foreach ($products as $product)
             @php
@@ -11,7 +11,7 @@
                 $discountPercent = $sale > 0 && $price > 0 ? round((($price - $sale) / $price) * 100) : 0;
             @endphp
 
-            <div class="col-xl-3 col-lg-4 col-md-6 product-item">
+            <div class="col-xl-3 col-lg-4 col-md-6 p-3">
                 <div class="product-card">
                     <div class="product-image-wrapper">
                         <a href="{{ url('sell_page/' . $product['id']) }}">
@@ -188,9 +188,10 @@
     }
 
     .sale-price {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 700;
-        color: #ef4444;
+        color: #6366F1;
+        margin-bottom: 14px;
     }
 
     .old-price {
@@ -200,20 +201,17 @@
     }
 
     .product-btn {
-        display: inline-block;
-        width: 100%;
+        margin-top: auto;
+        display: block;
         text-align: center;
-        padding: 12px 10px;
-        border-radius: 40px;
-        font-weight: 600;
-        font-size: 15px;
-        background: linear-gradient(135deg, #4F46E5, #7C3AED);
+        background: linear-gradient(135deg, #6366F1, #8B5CF6);
         color: white;
-        border: none;
-        transition: all 0.3s ease;
+        padding: 9px;
+        border-radius: 30px;
+        font-size: 14px;
+        font-weight: 600;
         text-decoration: none;
-        box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
-        letter-spacing: 0.3px;
+        transition: .3s;
     }
 
     .product-btn:hover {
@@ -271,14 +269,13 @@
     }
 
     @media (max-width: 768px) {
+        .product-box {
+            padding: 30px;
+        }
+
         .product-image {
             height: 200px;
         }
-
-        .product-title {
-            font-size: 15px;
-        }
-
         .sale-price {
             font-size: 18px;
         }
