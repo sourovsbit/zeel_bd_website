@@ -271,6 +271,26 @@ class FrontendController extends Controller
         ]);
     }
 
+    public function productSearchSuggest(Request $request)
+    {
+        $query = trim((string) $request->get('q', ''));
+
+        if (mb_strlen($query) < 3) {
+            return response()->json([]);
+        }
+
+        $needle = mb_strtolower($query);
+
+        $suggestions = $this->getFeatureProductSearchIndex()
+            ->filter(function ($p) use ($needle) {
+                return str_contains(mb_strtolower((string) ($p['name'] ?? '')), $needle);
+            })
+            ->take(8)
+            ->values();
+
+        return response()->json($suggestions);
+    }
+
     public function shop(Request $request)
     {
         $page = max((int) $request->get('page', 1), 1);
@@ -283,62 +303,7 @@ class FrontendController extends Controller
 
         // Fallback for APIs that ignore search/sort parameters.
         if ($search !== '' || $sort !== '') {
-            $cachedDataset = Cache::get('shop.feature_products.dataset.v1');
-
-            if (empty($cachedDataset)) {
-                try {
-                    $cachedDataset = Cache::remember('shop.feature_products.dataset.v1', now()->addMinutes(5), function () use ($endpoint) {
-                        $firstPageResponse = Http::timeout(10)->post($endpoint, [
-                            'type' => 0,
-                            'page' => 1,
-                        ]);
-
-                        if (!$firstPageResponse->successful()) {
-                            return [
-                                'per_page' => 12,
-                                'products' => [],
-                            ];
-                        }
-
-                        $firstPageResult = $firstPageResponse->json();
-                        $firstPageData = $firstPageResult['data'] ?? [];
-
-                        $perPage = (int) ($firstPageData['per_page'] ?? 12);
-                        $lastPage = (int) ($firstPageData['last_page'] ?? 1);
-                        $maxSyncPages = 20;
-                        $lastPage = min($lastPage, $maxSyncPages);
-
-                        $allProducts = collect($firstPageData['data'] ?? []);
-
-                        for ($p = 2; $p <= $lastPage; $p++) {
-                            $pageResponse = Http::timeout(10)->post($endpoint, [
-                                'type' => 0,
-                                'page' => $p,
-                            ]);
-
-                            if (!$pageResponse->successful()) {
-                                break;
-                            }
-
-                            $pageResult = $pageResponse->json();
-                            $pageProducts = $pageResult['data']['data'] ?? [];
-                            if (!empty($pageProducts)) {
-                                $allProducts = $allProducts->merge($pageProducts);
-                            }
-                        }
-
-                        return [
-                            'per_page' => $perPage,
-                            'products' => $allProducts->values()->all(),
-                        ];
-                    });
-                } catch (\Throwable $th) {
-                    $cachedDataset = [
-                        'per_page' => 12,
-                        'products' => [],
-                    ];
-                }
-            }
+            $cachedDataset = $this->getFeatureProductsDataset();
 
             $perPage = (int) ($cachedDataset['per_page'] ?? 12);
             $allProducts = collect($cachedDataset['products'] ?? []);
@@ -400,8 +365,11 @@ class FrontendController extends Controller
                     'sort' => $sort,
                 ];
 
-                $response = Http::timeout(10)->post($endpoint, $baseQuery);
-                $result = $response->json();
+                $cacheKey = 'shop.feature_products.page.v2.' . md5(json_encode($baseQuery));
+                $result = Cache::remember($cacheKey, now()->addMinutes(2), function () use ($endpoint, $baseQuery) {
+                    $response = Http::timeout(10)->post($endpoint, $baseQuery);
+                    return $response->json();
+                });
 
                 $products = $result['data']['data'] ?? [];
                 $pagination = $result['data'] ?? [];
@@ -652,6 +620,85 @@ class FrontendController extends Controller
     {
         $data = Administrative::where('status', 1)->where('id', $id)->firstOrFail();
         return view('frontend.administrative_message', compact('data'));
+    }
+
+    protected function getFeatureProductsDataset(int $maxSyncPages = 8, int $cacheMinutes = 20): array
+    {
+        $cacheKey = 'shop.feature_products.dataset.v2';
+
+        return Cache::remember($cacheKey, now()->addMinutes($cacheMinutes), function () use ($maxSyncPages) {
+            $endpoint = 'https://inventory.geelbd.com/api/feature/product';
+            $defaultData = [
+                'per_page' => 12,
+                'products' => [],
+            ];
+
+            try {
+                $firstPageResponse = Http::timeout(10)->post($endpoint, [
+                    'type' => 0,
+                    'page' => 1,
+                ]);
+
+                if (!$firstPageResponse->successful()) {
+                    return $defaultData;
+                }
+
+                $firstPageData = $firstPageResponse->json()['data'] ?? [];
+                $perPage = (int) ($firstPageData['per_page'] ?? 12);
+                $lastPage = min((int) ($firstPageData['last_page'] ?? 1), $maxSyncPages);
+
+                $allProducts = collect($firstPageData['data'] ?? []);
+
+                for ($page = 2; $page <= $lastPage; $page++) {
+                    $response = Http::timeout(10)->post($endpoint, [
+                        'type' => 0,
+                        'page' => $page,
+                    ]);
+
+                    if (!$response->successful()) {
+                        break;
+                    }
+
+                    $pageProducts = $response->json()['data']['data'] ?? [];
+                    if (empty($pageProducts)) {
+                        break;
+                    }
+
+                    $allProducts = $allProducts->merge($pageProducts);
+                }
+
+                return [
+                    'per_page' => $perPage,
+                    'products' => $allProducts->values()->all(),
+                ];
+            } catch (\Throwable $th) {
+                return $defaultData;
+            }
+        });
+    }
+
+    protected function getFeatureProductSearchIndex()
+    {
+        $cacheKey = 'shop.feature_products.search_index.v2';
+
+        return Cache::remember($cacheKey, now()->addMinutes(20), function () {
+            $products = collect($this->getFeatureProductsDataset()['products'] ?? []);
+
+            return $products->map(function ($product) {
+                $image = !empty($product['product_images'][0]['path'])
+                    ? 'https://inventory.geelbd.com/storage/app/public' . $product['product_images'][0]['path']
+                    : null;
+
+                return [
+                    'id' => (int) ($product['id'] ?? 0),
+                    'name' => (string) ($product['name'] ?? ''),
+                    'image' => $image,
+                    'url' => url('sell_page/' . ($product['id'] ?? 0)),
+                ];
+            })->filter(function ($item) {
+                return !empty($item['id']) && $item['name'] !== '';
+            })->values();
+        });
     }
 
     protected function fetchGroupList()

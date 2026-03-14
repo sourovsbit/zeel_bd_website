@@ -62,6 +62,7 @@ Route::post('change_menu_status',[MenuController::class,'status'])->name('menu.s
 
 Route::post('searchProduct',[AjaxController::class,'searchProduct']);
 Route::post('disableAds',[AjaxController::class,'disableAds'])->name('frontend.disable_ads');
+Route::get('product-search-suggest',[FrontendController::class,'productSearchSuggest'])->name('product.suggest');
 
 require __DIR__.'/auth.php';
 

@@ -39,7 +39,7 @@
                         </select>
                     </div>
                 </div>
-                <div class="col-md-4 col-12 text-md-end" style="border: 1px solid #999;border-radius: 50px;">
+                <div class="col-md-4 col-12 text-md-end" style="border: 1px solid #999;border-radius: 50px; padding: 0;">
                     <form id="heroSearchForm" class="bg-white rounded-pill p-2 shadow-lg">
                         <div class="input-group">
                             <span class="input-group-text bg-transparent border-0 ps-3">
@@ -76,21 +76,35 @@
         $(document).ready(function() {
             let searchDebounceTimer;
             let currentRequest = null;
+            let lastSearchTerm = $('#heroSearch').val().trim();
 
             // Sync hero search with hidden field and main form
             $('#heroSearch').on('keyup', function() {
-                $('#searchHidden').val($(this).val());
+                const typedValue = $(this).val();
+                const searchTerm = typedValue.trim();
+
+                $('#searchHidden').val(typedValue);
+
+                if (searchTerm === lastSearchTerm) {
+                    return;
+                }
+
+                if (searchTerm.length > 0 && searchTerm.length < 3) {
+                    return;
+                }
 
                 clearTimeout(searchDebounceTimer);
                 searchDebounceTimer = setTimeout(function() {
+                    lastSearchTerm = searchTerm;
                     fetchProducts(null, true);
-                }, 500);
+                }, 700);
             });
 
             // Submit from hero search
             $('#heroSearchForm').on('submit', function(e) {
                 e.preventDefault();
                 $('#searchHidden').val($('#heroSearch').val());
+                lastSearchTerm = $('#heroSearch').val().trim();
                 fetchProducts(null, true);
             });
 

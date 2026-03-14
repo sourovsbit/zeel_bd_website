@@ -199,7 +199,7 @@
                             </div>
                             <div class="col-lg-6 col-md-12 col-12 mt-4">
                                 <label>@lang('company_profile.address')</label>
-                                <textarea type="text" class="form-control form-control-sm @error('address') is-invalid @enderror" name="address"  id="summernote">{!! $data['data']->address !!}</textarea>
+                                <textarea type="text" class="form-control form-control-sm @error('address') is-invalid @enderror" name="address">{!! $data['data']->address !!}</textarea>
                                 @error('address')
                                 <div class="alert alert-danger">
                                     {{ $message }}
@@ -208,7 +208,7 @@
                             </div>
                             <div class="col-lg-6 col-md-12 col-12 mt-4">
                                 <label>@lang('company_profile.map')</label>
-                                <textarea type="text" class="form-control form-control-sm @error('map') is-invalid @enderror" name="map"  id="summernote1">{!! $data['data']->map !!}</textarea>
+                                <textarea type="text" class="form-control form-control-sm @error('map') is-invalid @enderror" name="map"  id="summernote">{!! $data['data']->map !!}</textarea>
                                 @error('map')
                                 <div class="alert alert-danger">
                                     {{ $message }}

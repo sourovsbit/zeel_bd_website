@@ -309,6 +309,205 @@
             display: none;
         }
     }
+
+    /* Navbar Search */
+    .navbar-search-wrap {
+        display: flex;
+        align-items: center;
+        margin-left: 20px;
+        position: relative;
+    }
+
+    .navbar-search-toggle {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #64748b;
+        font-size: 18px;
+        padding: 6px 8px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .navbar-search-toggle:hover {
+        color: #667eea;
+        background: #f1f5f9;
+    }
+
+    .navbar-search-box {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        width: 0;
+        overflow: hidden;
+        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #fff;
+        border-radius: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        border: 1.5px solid transparent;
+    }
+
+    .navbar-search-box.open {
+        width: 280px;
+        border-color: #667eea;
+    }
+
+    .navbar-search-box form {
+        display: flex;
+        align-items: center;
+        padding: 0 14px;
+        height: 40px;
+    }
+
+    .navbar-search-box input[type="text"] {
+        border: none;
+        outline: none;
+        font-size: 14px;
+        color: #2c3e50;
+        background: transparent;
+        width: 100%;
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    .navbar-search-box input[type="text"]::placeholder {
+        color: #94a3b8;
+    }
+
+    .navbar-search-box button[type="submit"] {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #667eea;
+        font-size: 15px;
+        padding: 0 0 0 8px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    @media(max-width: 991px) {
+        .navbar-search-wrap {
+            margin-left: 10px;
+        }
+        .navbar-search-box.open {
+            width: 200px;
+        }
+    }
+
+    @media(max-width: 480px) {
+        .navbar-search-box.open {
+            width: 160px;
+        }
+    }
+
+    /* Suggestion Dropdown */
+    .navbar-suggest-list {
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        width: 320px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.13);
+        border: 1px solid #e2e8f0;
+        list-style: none;
+        margin: 0;
+        padding: 6px 0;
+        z-index: 9999;
+        max-height: 380px;
+        overflow-y: auto;
+        display: none;
+    }
+
+    .navbar-suggest-list.show {
+        display: block;
+    }
+
+    .navbar-suggest-list li a {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 14px;
+        text-decoration: none;
+        color: #2c3e50;
+        font-size: 13.5px;
+        font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+        transition: background 0.18s ease;
+    }
+
+    .navbar-suggest-list li a:hover {
+        background: #f1f5f9;
+        color: #667eea;
+    }
+
+    .navbar-suggest-list li a img {
+        width: 38px;
+        height: 38px;
+        object-fit: cover;
+        border-radius: 6px;
+        flex-shrink: 0;
+        background: #f8f9fa;
+    }
+
+    .navbar-suggest-list li a .suggest-img-placeholder {
+        width: 38px;
+        height: 38px;
+        border-radius: 6px;
+        background: #e9ecef;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #adb5bd;
+        font-size: 16px;
+    }
+
+    .navbar-suggest-list .suggest-name {
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .navbar-suggest-list .suggest-more {
+        padding: 8px 14px;
+        text-align: center;
+        font-size: 12.5px;
+    }
+
+    .navbar-suggest-list .suggest-more a {
+        color: #667eea;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .navbar-suggest-list .suggest-more a:hover {
+        text-decoration: underline;
+    }
+
+    .navbar-suggest-list .suggest-loading,
+    .navbar-suggest-list .suggest-empty {
+        padding: 14px;
+        text-align: center;
+        color: #94a3b8;
+        font-size: 13px;
+    }
+
+    @media(max-width: 991px) {
+        .navbar-suggest-list {
+            width: 260px;
+        }
+    }
+
+    @media(max-width: 480px) {
+        .navbar-suggest-list {
+            width: 220px;
+        }
+    }
 </style>
 
 <header class="custom-header">
@@ -378,6 +577,26 @@
                 @if($company->youtube)
                     <a href="{{ $company->youtube }}" target="_blank"><i class="fa fa-youtube"></i></a>
                 @endif
+            </div>
+
+            <!-- Navbar Product Search -->
+            <div class="navbar-search-wrap" id="navbarSearchWrap">
+                <div class="navbar-search-box" id="navbarSearchBox">
+                    <form action="{{ url('shop') }}" method="GET" id="navbarSearchForm">
+                        <input type="text" name="search" id="navbarSearchInput"
+                            placeholder="Search products..."
+                            value="{{ request()->is('shop*') ? request('search') : '' }}"
+                            autocomplete="off">
+                        <button type="submit" aria-label="Search">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </form>
+                </div>
+                <button class="navbar-search-toggle" id="navbarSearchToggle" aria-label="Toggle search" type="button">
+                    <i class="fa fa-search"></i>
+                </button>
+                <!-- Suggestion Dropdown -->
+                <ul class="navbar-suggest-list" id="navbarSuggestList"></ul>
             </div>
         </nav>
 
@@ -450,4 +669,168 @@
             }
         });
     });
+
+    // Navbar search toggle + suggestions
+    (function () {
+        const toggle      = document.getElementById('navbarSearchToggle');
+        const box         = document.getElementById('navbarSearchBox');
+        const input       = document.getElementById('navbarSearchInput');
+        const suggestList = document.getElementById('navbarSuggestList');
+        const suggestUrl  = '{{ url("product-search-suggest") }}';
+        const shopUrl     = '{{ url("shop") }}';
+
+        if (!toggle || !box || !input || !suggestList) return;
+
+        let debounceTimer = null;
+        let activeIndex   = -1;
+        let currentXhr    = null;
+        const suggestionCache = new Map();
+
+        // Auto-open on shop page if search param exists
+        if (window.location.pathname.includes('/shop') && input.value.trim() !== '') {
+            box.classList.add('open');
+        }
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = box.classList.toggle('open');
+            if (isOpen) {
+                setTimeout(() => input.focus(), 50);
+            } else {
+                hideSuggestions();
+            }
+        });
+
+        // Fetch suggestions as user types
+        input.addEventListener('input', function () {
+            const q = input.value.trim();
+            clearTimeout(debounceTimer);
+            activeIndex = -1;
+
+            if (q.length < 3) {
+                hideSuggestions();
+                return;
+            }
+
+            debounceTimer = setTimeout(function () {
+                fetchSuggestions(q);
+            }, 450);
+        });
+
+        // Keyboard navigation inside suggestion list
+        input.addEventListener('keydown', function (e) {
+            const items = suggestList.querySelectorAll('li.suggest-item a');
+            if (!suggestList.classList.contains('show') || items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                activeIndex = Math.min(activeIndex + 1, items.length - 1);
+                updateActive(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                activeIndex = Math.max(activeIndex - 1, -1);
+                updateActive(items);
+            } else if (e.key === 'Enter') {
+                if (activeIndex >= 0 && items[activeIndex]) {
+                    e.preventDefault();
+                    window.location.href = items[activeIndex].href;
+                }
+                // else let the form submit naturally to shop
+            } else if (e.key === 'Escape') {
+                hideSuggestions();
+                box.classList.remove('open');
+                toggle.focus();
+            }
+        });
+
+        function updateActive(items) {
+            items.forEach(function (a, i) {
+                a.parentElement.classList.toggle('active', i === activeIndex);
+                if (i === activeIndex) a.parentElement.scrollIntoView({ block: 'nearest' });
+            });
+        }
+
+        function fetchSuggestions(q) {
+            if (suggestionCache.has(q)) {
+                renderSuggestions(suggestionCache.get(q), q);
+                return;
+            }
+
+            if (currentXhr) currentXhr.abort();
+
+            suggestList.innerHTML = '<li class="suggest-loading"><i class="fa fa-spinner fa-spin"></i> Searching...</li>';
+            suggestList.classList.add('show');
+
+            currentXhr = $.ajax({
+                url: suggestUrl,
+                type: 'GET',
+                data: { q: q },
+                success: function (data) {
+                    suggestionCache.set(q, data || []);
+                    renderSuggestions(data, q);
+                },
+                error: function (xhr) {
+                    if (xhr.statusText !== 'abort') hideSuggestions();
+                }
+            });
+        }
+
+        function renderSuggestions(items, q) {
+            if (!items || items.length === 0) {
+                suggestList.innerHTML = '<li class="suggest-empty">No products found for "' + escapeHtml(q) + '"</li>';
+                suggestList.classList.add('show');
+                return;
+            }
+
+            let html = '';
+            items.forEach(function (item) {
+                const imgTag = item.image
+                    ? '<img src="' + escapeHtml(item.image) + '" alt="" loading="lazy">'
+                    : '<span class="suggest-img-placeholder"><i class="fa fa-cube"></i></span>';
+                html += '<li class="suggest-item"><a href="' + escapeHtml(item.url) + '">' +
+                    imgTag +
+                    '<span class="suggest-name">' + escapeHtml(item.name) + '</span>' +
+                    '</a></li>';
+            });
+
+            html += '<li class="suggest-more"><a href="' + shopUrl + '?search=' + encodeURIComponent(q) + '">See all results for "' + escapeHtml(q) + '" &rarr;</a></li>';
+
+            suggestList.innerHTML = html;
+            suggestList.classList.add('show');
+            activeIndex = -1;
+        }
+
+        function hideSuggestions() {
+            suggestList.classList.remove('show');
+            suggestList.innerHTML = '';
+            activeIndex = -1;
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Close when clicking outside
+        document.addEventListener('click', function (e) {
+            const wrap = document.getElementById('navbarSearchWrap');
+            if (wrap && !wrap.contains(e.target)) {
+                box.classList.remove('open');
+                hideSuggestions();
+            }
+        });
+
+        // Close on Escape (when input not focused)
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && document.activeElement !== input) {
+                box.classList.remove('open');
+                hideSuggestions();
+                toggle.focus();
+            }
+        });
+    })();
 </script>

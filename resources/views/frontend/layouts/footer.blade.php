@@ -576,7 +576,7 @@
                         @if ($company->address)
                             <li>
                                 <i class="fa fa-map-marker"></i>
-                                <span>{!! $company->address !!}</span>
+                                <span style="color: rgb(255 255 255) !important;background: #3210ff;">{!! $company->address !!}</span>
                             </li>
                         @endif
                         @if ($company->phone)
