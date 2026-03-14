@@ -318,42 +318,13 @@
         position: relative;
     }
 
-    .navbar-search-toggle {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: #64748b;
-        font-size: 18px;
-        padding: 6px 8px;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .navbar-search-toggle:hover {
-        color: #667eea;
-        background: #f1f5f9;
-    }
-
     .navbar-search-box {
-        position: absolute;
-        top: 50%;
-        right: 0;
-        transform: translateY(-50%);
-        width: 0;
-        overflow: hidden;
-        transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 280px;
         background: #fff;
         border-radius: 30px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        border: 1.5px solid transparent;
-    }
-
-    .navbar-search-box.open {
-        width: 280px;
         border-color: #667eea;
+        border: 1.5px solid #667eea;
     }
 
     .navbar-search-box form {
@@ -393,13 +364,13 @@
         .navbar-search-wrap {
             margin-left: 10px;
         }
-        .navbar-search-box.open {
+        .navbar-search-box {
             width: 200px;
         }
     }
 
     @media(max-width: 480px) {
-        .navbar-search-box.open {
+        .navbar-search-box {
             width: 160px;
         }
     }
@@ -564,7 +535,7 @@
             </ul>
 
             <!-- Social Icons -->
-            <div class="social-icons">
+            {{-- <div class="social-icons">
                 @if($company->facebook)
                     <a href="{{ $company->facebook }}" target="_blank"><i class="fa fa-facebook"></i></a>
                 @endif
@@ -577,7 +548,7 @@
                 @if($company->youtube)
                     <a href="{{ $company->youtube }}" target="_blank"><i class="fa fa-youtube"></i></a>
                 @endif
-            </div>
+            </div> --}}
 
             <!-- Navbar Product Search -->
             <div class="navbar-search-wrap" id="navbarSearchWrap">
@@ -592,9 +563,6 @@
                         </button>
                     </form>
                 </div>
-                <button class="navbar-search-toggle" id="navbarSearchToggle" aria-label="Toggle search" type="button">
-                    <i class="fa fa-search"></i>
-                </button>
                 <!-- Suggestion Dropdown -->
                 <ul class="navbar-suggest-list" id="navbarSuggestList"></ul>
             </div>
@@ -672,34 +640,18 @@
 
     // Navbar search toggle + suggestions
     (function () {
-        const toggle      = document.getElementById('navbarSearchToggle');
         const box         = document.getElementById('navbarSearchBox');
         const input       = document.getElementById('navbarSearchInput');
         const suggestList = document.getElementById('navbarSuggestList');
         const suggestUrl  = '{{ url("product-search-suggest") }}';
         const shopUrl     = '{{ url("shop") }}';
 
-        if (!toggle || !box || !input || !suggestList) return;
+        if (!box || !input || !suggestList) return;
 
         let debounceTimer = null;
         let activeIndex   = -1;
         let currentXhr    = null;
         const suggestionCache = new Map();
-
-        // Auto-open on shop page if search param exists
-        if (window.location.pathname.includes('/shop') && input.value.trim() !== '') {
-            box.classList.add('open');
-        }
-
-        toggle.addEventListener('click', function (e) {
-            e.stopPropagation();
-            const isOpen = box.classList.toggle('open');
-            if (isOpen) {
-                setTimeout(() => input.focus(), 50);
-            } else {
-                hideSuggestions();
-            }
-        });
 
         // Fetch suggestions as user types
         input.addEventListener('input', function () {
@@ -738,8 +690,6 @@
                 // else let the form submit naturally to shop
             } else if (e.key === 'Escape') {
                 hideSuggestions();
-                box.classList.remove('open');
-                toggle.focus();
             }
         });
 
@@ -819,17 +769,14 @@
         document.addEventListener('click', function (e) {
             const wrap = document.getElementById('navbarSearchWrap');
             if (wrap && !wrap.contains(e.target)) {
-                box.classList.remove('open');
                 hideSuggestions();
             }
         });
 
-        // Close on Escape (when input not focused)
+        // Close suggestions on Escape (when input not focused)
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && document.activeElement !== input) {
-                box.classList.remove('open');
                 hideSuggestions();
-                toggle.focus();
             }
         });
     })();
