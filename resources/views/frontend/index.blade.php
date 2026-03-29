@@ -708,18 +708,20 @@
             display: block;
             text-align: center;
             padding: 25px 15px;
-            background: #fff;
+            background: #ff6b351c;
             border-radius: 14px;
             transition: all .35s ease;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+            /* box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06); */
             border: 1px solid #f1f1f1;
             height: 100%;
         }
 
         .category-card img {
-            height: 55px;
+            height: 100px;
             margin-bottom: 12px;
             transition: .3s;
+            background: #fff;
+            border-radius: 50%;
         }
 
         .category-card h6 {
